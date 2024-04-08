@@ -1,6 +1,5 @@
-import "./globals.css";
-import { ThemeProvider } from "./components/theme-provider";
-import { DesktopLayout } from "./components/layouts/DesktopLayout";
+import "../globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata = {
   title: "Next.js",
