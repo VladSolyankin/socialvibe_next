@@ -52,12 +52,12 @@ export const SignInForm = () => {
     },
   });
 
-  const useUserSignIn = async (email: string, password: string) => {
+  const onUserSignIn = async (email: string, password: string) => {
     await signInWithEmailAndPassword(auth, email, password)
       .then((userCredentials) => {
         localStorage.setItem("userAuth", userCredentials.user.uid);
         localStorage.setItem("isLogged", "true");
-        pageNavigator("/");
+        pageNavigator("/news");
         console.log(`${userCredentials.user.uid} user logged`);
       })
       .catch((err) => {
@@ -70,7 +70,7 @@ export const SignInForm = () => {
   };
 
   const onFormSubmit = (values: z.infer<typeof formSchema>) => {
-    useUserSignIn(values.email, values.password);
+    onUserSignIn(values.email, values.password);
   };
 
   return (

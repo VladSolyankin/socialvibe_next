@@ -16,7 +16,7 @@ import {
 } from "../ui/form";
 import { createUserDocument } from "@/lib/firebase";
 import { auth } from "@/lib/firebase/config";
-import { useUserSignUp } from "@/lib/firebase/auth";
+import { onUserSignUp } from "@/lib/firebase/auth";
 import { useToast } from "../ui/use-toast";
 import { redirect, useRouter } from "next/navigation";
 
@@ -55,7 +55,7 @@ export const SignUpForm = () => {
   });
 
   const onFormSubmit = async (values: z.infer<typeof formSchema>) => {
-    await useUserSignUp(values.email, values.password);
+    await onUserSignUp(values.email, values.password);
     await createUserDocument(auth.currentUser?.uid, values.email, "", "");
     pageNavigator("/login");
     toast({

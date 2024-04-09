@@ -20,7 +20,7 @@ import { MdOutlinePhotoSizeSelectActual } from "react-icons/md";
 import { PiHeadphones } from "react-icons/pi";
 import { RiHomeSmile2Line, RiMessage3Line } from "react-icons/ri";
 import { FaUserFriends } from "react-icons/fa";
-import { useUserLogOut } from "@/lib/firebase/auth";
+import { onUserLogout } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 
 export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
@@ -31,7 +31,9 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    if (localStorage.getItem("isLogged")) {
+    if (
+      typeof window !== "undefined" ? localStorage.getItem("isLogged") : false
+    ) {
       onAuthStateChanged(auth, () => {
         toast({
           title: "✅ Вы успешно вошли",
@@ -43,7 +45,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const onUserLogout = () => {
-    useUserLogOut();
+    onUserLogout();
     pageNavigator("/auth/login");
   };
   return (
@@ -60,7 +62,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex flex-col items-center">
               <img
                 className="h-12 rounded-lg"
-                src="/assets/socialvibe_logo.svg"
+                src="/socialvibe_logo.svg"
                 alt="SocialVibe logo picture"
               />
             </div>
@@ -74,11 +76,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
               className="flex justify-center items-center my-5 gap-3 p-2"
               onClick={() => pageNavigator("/profile")}
             >
-              <img
-                className="w-10 h-10"
-                src={true ? "/assets/default_profile.png" : ""}
-                alt=""
-              />
+              <img className="w-10 h-10" src="/default_profile.png" alt="" />
               <Label className="text-lg">Профиль</Label>
             </div>
             <ul className="flex flex-col items-start w-[150px]">

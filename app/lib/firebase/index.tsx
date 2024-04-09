@@ -1,3 +1,4 @@
+"use client";
 import {
   DocumentData,
   addDoc,
@@ -9,19 +10,20 @@ import {
   query,
   setDoc,
   updateDoc,
-} from 'firebase/firestore';
-import { db, storage, auth, rtdb } from './config';
-import { IUserPhotos } from '@/types';
-import { ref, uploadBytes } from 'firebase/storage';
-import { set, ref as dbRef, get, child, update } from 'firebase/database';
+} from "firebase/firestore";
+import { db, storage, auth, rtdb } from "./config";
+import { IUserPhotos } from "@/types";
+import { ref, uploadBytes } from "firebase/storage";
+import { set, ref as dbRef, get, child, update } from "firebase/database";
 
-const storageUserId = localStorage.getItem('userAuth');
+const storageUserId =
+  typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
 
 export const getAllUsers = async () => {
   const users = [];
-  const usersSnapshot = await getDocs(query(collection(db, '/users')));
+  const usersSnapshot = await getDocs(query(collection(db, "/users")));
 
-  usersSnapshot.forEach(user => {
+  usersSnapshot.forEach((user) => {
     users.push(user.data());
   });
 
@@ -34,17 +36,17 @@ export const createUserDocument = async (
   birthDate: string
 ) => {
   try {
-    console.log('creating user');
+    console.log("creating user");
     await setDoc(doc(db, `users/${userId}`), {
       id: userId,
-      avatar_url: '',
+      avatar_url: "",
       email: userEmail,
       full_name: fullName,
       info: {
         birth_date: birthDate,
-        city: '',
-        phone: '',
-        status: '',
+        city: "",
+        phone: "",
+        status: "",
       },
       is_online: false,
       friends: [],
@@ -73,11 +75,11 @@ export const getCurrentUser = async (userId: string) => {
 export const getUsersProfileInfo = async () => {
   const usersData: DocumentData[] = [];
 
-  const q = query(collection(db, 'users'));
+  const q = query(collection(db, "users"));
 
   const userDocs = await getDocs(q);
 
-  userDocs.forEach(user => {
+  userDocs.forEach((user) => {
     usersData.push({ id: user.id, ...user.data() });
   });
 
@@ -112,11 +114,13 @@ export const getUserFriends = async () => {
 
   const friendsIds = userDoc.data().friends;
 
-  const friendsPromises = friendsIds.map(id => getDoc(doc(db, `/users/${id}`)));
+  const friendsPromises = friendsIds.map((id) =>
+    getDoc(doc(db, `/users/${id}`))
+  );
 
   const friendsData = (await Promise.all(friendsPromises))
-    .map(doc => doc.data())
-    .filter(data => data);
+    .map((doc) => doc.data())
+    .filter((data) => data);
 
   return friendsData;
 };
@@ -204,7 +208,7 @@ export const addUserImage = async (imageTitle: string, imageUrl: string) => {
 
   const newImage = {
     url: imageUrl,
-    date: new Date().toLocaleDateString('ru-RU'),
+    date: new Date().toLocaleDateString("ru-RU"),
     title: imageTitle,
   };
 
@@ -218,7 +222,7 @@ export const addUserImage = async (imageTitle: string, imageUrl: string) => {
 export const addUserStorageImage = async (title: string, file: File) => {
   const userStorageRef = ref(storage, `users/${storageUserId}/images/${title}`);
 
-  await uploadBytes(userStorageRef, file).then(() => console.log('file added'));
+  await uploadBytes(userStorageRef, file).then(() => console.log("file added"));
 };
 
 export const getUserAlbumImages = () => {};
@@ -240,7 +244,7 @@ export const getNeuroChatMessages = () => {};
 
 // RTDB
 
-export const initializeDatabaseUser = friends => {
+export const initializeDatabaseUser = (friends) => {
   const chats = friends.map((friend, index: number) => {
     return {
       title: friend.full_name,
@@ -250,15 +254,15 @@ export const initializeDatabaseUser = friends => {
 
   const chatObject = Object.assign({}, ...chats);
 
-  get(child(dbRef(rtdb), `/users/${storageUserId}/chats`)).then(res => {
+  get(child(dbRef(rtdb), `/users/${storageUserId}/chats`)).then((res) => {
     const updates = {};
     updates[`users/${storageUserId}/chats`] = { ...res.val(), ...chats };
     update(dbRef(rtdb), updates);
   });
 };
 
-export const addNewChat = (title: string = 'title', members: [] = []) => {
-  get(child(dbRef(rtdb), `/users/${storageUserId}/chats`)).then(res => {
+export const addNewChat = (title: string = "title", members: [] = []) => {
+  get(child(dbRef(rtdb), `/users/${storageUserId}/chats`)).then((res) => {
     const lastChatIndex: number = Object.keys(res.val()).length;
     const newChat = {
       title: title,
@@ -272,7 +276,7 @@ export const addNewChat = (title: string = 'title', members: [] = []) => {
 
 export const addNewChatMessage = (chatIndex: number) => {
   get(child(dbRef(rtdb), `/users/${storageUserId}/chats/${chatIndex}`)).then(
-    res => {
+    (res) => {
       const updates = {};
       updates[`users/${storageUserId}/chats/${chatIndex}`] = newChat;
       update(dbRef(rtdb), updates);
@@ -281,5 +285,5 @@ export const addNewChatMessage = (chatIndex: number) => {
 };
 
 export const getDatabaseChats = () => {
-  get(dbRef(rtdb)).then(res => console.log(res.val()));
+  get(dbRef(rtdb)).then((res) => console.log(res.val()));
 };

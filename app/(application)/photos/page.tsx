@@ -44,7 +44,7 @@ import { FcGenericSortingAsc } from "react-icons/fc";
 import Emoji from "react-emoji-render";
 import Image from "next/image";
 
-export const Photos = () => {
+export default function PhotosPage() {
   const [userImages, setUserImages] = useState<Array<IUserPhotos>>([]);
   const [userAlbums, setUserAlbums] = useState<Array<IUserAlbum>>();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -541,7 +541,10 @@ export const Photos = () => {
                 {selectedAlbum.images &&
                   selectedAlbum.images.map((image) => {
                     return (
-                      <div className="flex flex-col items-center">
+                      <div
+                        className="flex flex-col items-center"
+                        key={nanoid()}
+                      >
                         <img
                           className="w-40 h-40 rounded-xl"
                           src={image.url}
@@ -583,4 +586,4 @@ export const Photos = () => {
       </Tabs>
     </div>
   );
-};
+}

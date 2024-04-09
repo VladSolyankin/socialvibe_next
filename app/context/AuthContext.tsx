@@ -1,3 +1,5 @@
+"use client";
+
 import { AUTH_INITIAL_STATE, INITIAL_USER } from "@/constants";
 import { auth } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
@@ -12,7 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<IUser>(INITIAL_USER);
 
   const checkUserAuth = async () => {
-    if (auth.currentUser) {
+    if (auth.currentUser && typeof window !== undefined) {
       localStorage.setItem("userAuth", auth.currentUser.uid);
       setIsAuthenticated(true);
     } else {

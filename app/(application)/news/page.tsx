@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -6,11 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { getUserPosts } from "@/lib/firebase";
 import { IUserPost } from "@/types";
 import { nanoid } from "nanoid";
+import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { FaRegComment, FaRegHeart } from "react-icons/fa6";
 import { FcAddImage, FcLike } from "react-icons/fc";
+import DefaultProfile from "../../../public/default_profile.png";
 
 export default function NewsPage() {
   const [userPosts, setUserPosts] = useState(Array);
@@ -55,10 +58,14 @@ export default function NewsPage() {
     <div id="posts" className="flex flex-col gap-10 border-2 rounded-xl p-3">
       <div className="flex flex-col gap-3">
         <div className="w-[35vw] flex items-center gap-3">
-          <img src="assets/default_profile.png" alt="" className="w-8 h-8" />
+          <img
+            src="/default_profile.png"
+            alt="Profile picture"
+            className="w-8 h-8"
+          />
           <Textarea placeholder="Расскажите что-то новое..." />
         </div>
-        <div className="grid grid-cols-10 gap-3">
+        <div className="grid grid-cols-5 gap-3">
           {newPostImages ? (
             newPostImages.map((url, index) => {
               return (
@@ -100,7 +107,7 @@ export default function NewsPage() {
               <div className="flex flex-col p-2 gap-3">
                 <div className="flex items-center gap-3">
                   <img
-                    src={true ? "assets/default_profile.png" : ""}
+                    src={"/default_profile.png" ?? ""}
                     alt=""
                     className="w-10 h-10"
                   />
@@ -132,7 +139,7 @@ export default function NewsPage() {
                       className="flex items-center border-t-2 border-gray-800 p-2 gap-3"
                     >
                       <img
-                        src={true ? "assets/default_profile.png" : ""}
+                        src={"/default_profile.png" ?? ""}
                         className="w-8 h-8"
                         alt=""
                       />
