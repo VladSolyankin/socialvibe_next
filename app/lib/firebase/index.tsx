@@ -33,22 +33,23 @@ export const createUserDocument = async (
   userId: string | undefined,
   fullName: string,
   userEmail: string,
-  birthDate: string
+  birthDate: string,
+  city?: string
 ) => {
   try {
     console.log("creating user");
     await setDoc(doc(db, `users/${userId}`), {
       id: userId,
+      registration_date: Date.now().toLocaleString("ru-RU"),
       avatar_url: "",
       email: userEmail,
       full_name: fullName,
       info: {
         birth_date: birthDate,
         city: "",
-        phone: "",
         status: "",
       },
-      is_online: false,
+      is_online: true,
       friends: [],
       photos: {
         albums: [],
@@ -72,6 +73,12 @@ export const getCurrentUser = async (userId: string) => {
   return currentUser.data();
 };
 
+export const getUser = async () => {
+  const currentUser = await getDoc(doc(db, `users/${storageUserId}`));
+
+  return currentUser.data();
+};
+
 export const getUsersProfileInfo = async () => {
   const usersData: DocumentData[] = [];
 
@@ -84,6 +91,33 @@ export const getUsersProfileInfo = async () => {
   });
 
   return usersData;
+};
+
+export const changeUserProfileInfo = async () => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+};
+
+export const changeUserImage = async (imageUrl: string) => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+
+  const userImage = userDoc.data().avatar_url;
+
+  if (userImage !== imageUrl) {
+    await updateDoc(userRef, { avatar_url: imageUrl });
+  } else {
+    return false;
+  }
+};
+
+export const changeUserOnline = async () => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+
+  const userIsOnline = userDoc.data().is_online;
+
+  await updateDoc(userRef, { is_online: !userIsOnline });
 };
 
 export const addUserFriend = async (id: string) => {
@@ -125,16 +159,6 @@ export const getUserFriends = async () => {
   return friendsData;
 };
 
-export const getUserProfilePosts = () => {};
-
-export const createProfilePost = () => {};
-
-export const deleteProfilePost = () => {};
-
-export const editProfilePost = () => {};
-
-export const editProfileInfo = () => {};
-
 // Новости
 export const getAllPosts = () => {};
 
@@ -146,45 +170,14 @@ export const getUserPosts = async () => {
   return userPosts;
 };
 
-export const getLikedPosts = () => {};
+export const changePostLikeCount = async (postId: string, add: boolean) => {
+  const userRef = doc(db, `users/${storageUserId}/posts/${postId}`);
+  const userDoc = await getDoc(userRef);
 
-export const createNewPost = () => {};
+  const likeCount = userDoc.data().likes;
 
-export const deleteUserPost = () => {};
-
-export const editUserPost = () => {};
-
-export const likeUserPost = () => {};
-
-export const addPostComment = () => {};
-
-export const deletePostComment = () => {};
-
-export const editPostComment = () => {};
-
-// Сообщения
-export const getUserChats = () => {};
-
-export const createNewChat = () => {};
-
-export const deleteUserChat = () => {};
-
-export const editUserChat = () => {};
-
-// Чат
-export const getChatMessages = () => {};
-
-export const getChatImages = () => {};
-
-export const getUserMessage = () => {};
-
-export const sendNewMessage = () => {};
-
-export const deleteUserMessage = () => {};
-
-export const editUserMessage = () => {};
-
-// Фотографии
+  await updateDoc(userRef, { likes: add ? likeCount + 1 : likeCount - 1 });
+};
 
 export const getUserAlbums = async () => {
   const userAlbums = await getDoc(doc(db, `users/${storageUserId}`));
@@ -219,6 +212,45 @@ export const addUserImage = async (imageTitle: string, imageUrl: string) => {
   await updateDoc(userRef, { photos });
 };
 
+export const addUserAlbum = async (albumTitle: string, imageUrl: string) => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+
+  const userAlbums = userDoc.data().photos.albums;
+
+  const newAlbum = {
+    title: albumTitle,
+    images: [],
+    preview: imageUrl,
+    date: new Date().toLocaleDateString("ru-RU"),
+  };
+
+  userAlbums.push(newAlbum);
+
+  await updateDoc(userRef, { photos: { albums: userAlbums } });
+};
+
+export const addAlbumImage = async (
+  albumIndex: number,
+  imageUrl: string,
+  imageTitle: string
+) => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+
+  const albumImages = userDoc.data().photos.albums[albumIndex].images;
+
+  const newImage = {
+    url: imageUrl,
+    date: new Date().toLocaleDateString("ru-RU"),
+    title: imageTitle,
+  };
+
+  albumImages.push(newImage);
+
+  await updateDoc(userRef, { photos: { albums: { images: albumImages } } });
+};
+
 export const addUserStorageImage = async (title: string, file: File) => {
   const userStorageRef = ref(storage, `users/${storageUserId}/images/${title}`);
 
@@ -237,10 +269,6 @@ export const deleteUserImage = async (index: number) => {
 
   await updateDoc(userRef, { photos });
 };
-
-// Нейро-чат
-
-export const getNeuroChatMessages = () => {};
 
 // RTDB
 

@@ -13,7 +13,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { auth } from "@/lib/firebase/config";
 import { onAuthStateChanged } from "firebase/auth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineWechat } from "react-icons/ai";
 import { IoMenu } from "react-icons/io5";
 import { MdOutlinePhotoSizeSelectActual } from "react-icons/md";
@@ -22,8 +22,10 @@ import { RiHomeSmile2Line, RiMessage3Line } from "react-icons/ri";
 import { FaUserFriends } from "react-icons/fa";
 import { onUserLogout } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
+import { changeUserOnline, getUser } from "@/lib/firebase";
 
 export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
+  const [currentUser, setCurrentUser] = useState({});
   const { toast } = useToast();
   const router = useRouter();
   const pageNavigator = (path: string) => {
@@ -44,9 +46,22 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  const fetchUser = async () => {
+    const user = await getUser();
+    setCurrentUser(user);
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
   const onUserLogout = () => {
-    onUserLogout();
-    pageNavigator("/auth/login");
+    pageNavigator("/login");
+    changeUserOnline();
+    toast({
+      title: "✅ Вы успешно вышли",
+      description: "Для дальнейшего пользования авторизуйтесь снова",
+    });
   };
   return (
     <div className="w-full">
@@ -73,10 +88,14 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
           </SheetHeader>
           <div className="basis-1/6">
             <div
-              className="flex justify-center items-center my-5 gap-3 p-2"
+              className="flex flex-col justify-center items-center my-5 gap-3 p-2"
               onClick={() => pageNavigator("/profile")}
             >
-              <img className="w-10 h-10" src="/default_profile.png" alt="" />
+              <img
+                className="w-12 h-12 rounded-3xl"
+                src={currentUser?.avatar_url || "/default_profile.png"}
+                alt=""
+              />
               <Label className="text-lg">Профиль</Label>
             </div>
             <ul className="flex flex-col items-start w-[150px]">

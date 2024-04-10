@@ -4,7 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { getUserPosts } from "@/lib/firebase";
+import { changePostLikeCount, getUserPosts } from "@/lib/firebase";
 import { IUserPost } from "@/types";
 import { nanoid } from "nanoid";
 import Image from "next/image";
@@ -20,6 +20,7 @@ export default function NewsPage() {
   const [userPostInfo, setUserPostInfo] = useState({});
   const [profiles, setProfiles] = useState([]);
   const [newPostImages, setNewPostImages] = useState(Array<string>);
+  const [isPostLiked, setIsPostLiked] = useState(false);
 
   useEffect(() => {
     const getPostsFromFirestore = async () => {
@@ -54,10 +55,20 @@ export default function NewsPage() {
     setNewPostImages((images) => images.filter((_, i) => i != index));
   };
 
+  const onLikePost = (post) => {
+    if (isPostLiked) {
+      setIsPostLiked(false);
+      changePostLikeCount(post.id, false);
+    } else {
+      setIsPostLiked(true);
+      changePostLikeCount(post.id, true);
+    }
+  };
+
   return (
     <div id="posts" className="flex flex-col gap-10 border-2 rounded-xl p-3">
       <div className="flex flex-col gap-3">
-        <div className="w-[35vw] flex items-center gap-3">
+        <div className="w-full flex items-center justify-center gap-3">
           <img
             src="/default_profile.png"
             alt="Profile picture"
@@ -69,14 +80,17 @@ export default function NewsPage() {
           {newPostImages ? (
             newPostImages.map((url, index) => {
               return (
-                <div className="relative" key={nanoid()}>
-                  <img
+                <div className="relative w-24 h-24" key={nanoid()}>
+                  <Image
                     src={url}
                     alt="Added image post"
-                    className="h-10 w-10 rounded-sm"
+                    className="h-20 w-20 rounded-sm"
+                    quality={100}
+                    width={20}
+                    height={20}
                   />
                   <AiFillCloseCircle
-                    className="h-4 w-4 absolute top-0 right-0"
+                    className="h-4 w-4 absolute top-0 right-0 object-contain"
                     onClick={() => onDeleteNewPostImage(index)}
                   />
                 </div>
@@ -97,63 +111,78 @@ export default function NewsPage() {
           </div>
         </div>
       </div>
-      {userPosts.length > 0 &&
-        userPosts.map((post: IUserPost) => {
-          return (
-            <Card
-              key={nanoid()}
-              className="flex flex-col gap-3 border-2 w-[35vw]"
-            >
-              <div className="flex flex-col p-2 gap-3">
-                <div className="flex items-center gap-3">
-                  <img
-                    src={"/default_profile.png" ?? ""}
-                    alt=""
-                    className="w-10 h-10"
-                  />
-                  <span>{post.full_name}</span>
-                  <span className="ml-auto">
-                    {post.date.toDate().toLocaleString().replace(",", " •")}
-                  </span>
-                </div>
-                <div>{post.content}</div>
-                <img src={post.images[0]} alt="" className="rounded-xl" />
-                <div className="flex gap-3">
-                  {false ? (
-                    <FaRegHeart className="w-6 h-6" />
-                  ) : (
-                    <FcLike className="w-6 h-6" />
-                  )}
-
-                  <FaRegComment className="w-6 h-6" />
-                  <div className="flex flex-col"></div>
-                </div>
-              </div>
-              <div id="post-buttons" className=""></div>
-              <div id="comments">
-                {post.comments.map((comment) => {
-                  return (
-                    <div
-                      key={nanoid()}
-                      id="comment"
-                      className="flex items-center border-t-2 border-gray-800 p-2 gap-3"
+      <div className="flex flex-col gap-10 items-center justify-center">
+        {userPosts.length > 0 &&
+          userPosts.map((post: IUserPost) => {
+            return (
+              <Card
+                key={nanoid()}
+                className="flex flex-col gap-3 border-2 w-[35vw]"
+              >
+                <div className="flex flex-col p-2 gap-3">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={"/default_profile.png" ?? ""}
+                      alt=""
+                      className="w-10 h-10"
+                    />
+                    <span>{post.full_name}</span>
+                    <span className="ml-auto">
+                      {post.date.toDate().toLocaleString().replace(",", " •")}
+                    </span>
+                  </div>
+                  <div>{post.content}</div>
+                  <img src={post.images[0]} alt="" className="rounded-xl" />
+                  <div className="flex items-center">
+                    <Button
+                      className="text-sm"
+                      variant={"ghost"}
+                      onClick={() => onLikePost(post)}
                     >
-                      <img
-                        src={"/default_profile.png" ?? ""}
-                        className="w-8 h-8"
-                        alt=""
-                      />
-                      <div>
-                        <span className="text-blue-500">Some user</span>
-                        <p className="text-sm">{comment.content}</p>
+                      <div className="flex items-center gap-3">
+                        {isPostLiked ? (
+                          <FcLike className="w-6 h-6" />
+                        ) : (
+                          <FaRegHeart className="w-6 h-6" />
+                        )}
+                        <span className="text-md">{post.likes}</span>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          );
-        })}
+                    </Button>
+                    <Button variant={"ghost"}>
+                      <div className="flex gap-3 items-center">
+                        <FaRegComment className="w-6 h-6" />
+                        <span className="text-md">{post.comments.length}</span>
+                      </div>
+                    </Button>
+                    <div className="flex flex-col"></div>
+                  </div>
+                </div>
+                <div id="post-buttons" className=""></div>
+                <div id="comments">
+                  {post.comments.map((comment) => {
+                    return (
+                      <div
+                        key={nanoid()}
+                        id="comment"
+                        className="flex items-center border-t-2 border-gray-800 p-2 gap-3"
+                      >
+                        <img
+                          src={"/default_profile.png" ?? ""}
+                          className="w-8 h-8"
+                          alt=""
+                        />
+                        <div>
+                          <span className="text-blue-500">Some user</span>
+                          <p className="text-sm">{comment.content}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </Card>
+            );
+          })}
+      </div>
     </div>
   );
 }

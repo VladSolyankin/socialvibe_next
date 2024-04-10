@@ -30,6 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import {
+  addUserAlbum,
   addUserImage,
   deleteUserImage,
   getUserAlbums,
@@ -167,7 +168,13 @@ export default function PhotosPage() {
     setIsConfirmOpen(true);
   };
 
-  const onAlbumDeleteConfirmed = () => {};
+  const onAlbumDeleteConfirmed = () => {
+    deleteUserAlbum(selectedAlbum);
+    fetchUserAlbums();
+    setIsConfirmOpen(false);
+    setIsAlbumOpen(false);
+    setSelectedAlbum({});
+  };
 
   const onSearchImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsSearched(true);
@@ -178,7 +185,24 @@ export default function PhotosPage() {
     setFilteredImages(foundImages);
   };
 
-  const onAddNewAlbum = () => {};
+  const onAddNewAlbum = (title: string, imageUrl: string) => {
+    setIsAlbumOpen(false);
+    addUserAlbum(title, imageUrl)
+      .then(() => {
+        fetchUserAlbums();
+        setAddImageTitle("");
+      })
+      .catch((err) => console.log(err));
+  };
+
+  const onAddNewAlbumImage = (imageUrl: string) => {
+    addUserAlbumImage(selectedAlbum, imageUrl)
+      .then(() => {
+        fetchUserAlbums();
+        setAddImageTitle("");
+      })
+      .catch((err) => console.log(err));
+  };
 
   const onSortChange = (sort: string) => {
     switch (sort) {
@@ -348,7 +372,9 @@ export default function PhotosPage() {
                         <Button
                           type="submit"
                           className="flex gap-2 items-center"
-                          onClick={() => onAddNewAlbum()}
+                          onClick={() =>
+                            onAddNewAlbum(addImageTitle, selectedFileURL)
+                          }
                         >
                           <BiSolidSave />
                           Сохранить
@@ -405,7 +431,7 @@ export default function PhotosPage() {
             </DropdownMenu>
             <Dialog open={isImageDialogOpen} onOpenChange={onImageDialogClose}>
               <DialogContent>
-                <Card className="flex flex-col min-w-[500px] gap-3">
+                <Card className="flex flex-col gap-3">
                   <img
                     className="h-full rounded-t-xl object-contain"
                     src={selectedImage}
@@ -537,8 +563,8 @@ export default function PhotosPage() {
           <Dialog open={isAlbumOpen} onOpenChange={setIsAlbumOpen}>
             <DialogContent>
               <DialogHeader>{selectedAlbum.title}</DialogHeader>
-              <div className="grid grid-cols-4 w-[50vw]">
-                {selectedAlbum.images &&
+              <div className="grid grid-cols-3">
+                {selectedAlbum.images ? (
                   selectedAlbum.images.map((image) => {
                     return (
                       <div
@@ -553,12 +579,19 @@ export default function PhotosPage() {
                         <span>{image.title}</span>
                       </div>
                     );
-                  })}
+                  })
+                ) : (
+                  <div className="flex flex-col items-center justify-center col-span-3 mx-auto h-full">
+                    <Emoji className="text-5xl">🥺</Emoji>
+                    <span>У альбома нет изображений</span>
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="destructive" onClick={onDeleteAlbum}>
                   Удалить
                 </Button>
+                <Button>Добавить изображение</Button>
                 <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
                   <DialogContent>
                     <DialogHeader>

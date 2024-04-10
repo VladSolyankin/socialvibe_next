@@ -19,6 +19,7 @@ import { toast } from "../ui/use-toast";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase/config";
 import { useRouter } from "next/navigation";
+import { changeUserOnline } from "@/lib/firebase";
 
 const formSchema = z.object({
   email: z
@@ -58,6 +59,11 @@ export const SignInForm = () => {
         localStorage.setItem("userAuth", userCredentials.user.uid);
         localStorage.setItem("isLogged", "true");
         pageNavigator("/news");
+        changeUserOnline();
+        toast({
+          title: "✅ Вход выполнен",
+          description: "Добро пожаловать!",
+        });
         console.log(`${userCredentials.user.uid} user logged`);
       })
       .catch((err) => {

@@ -8,7 +8,7 @@ import {
   addUserFriend,
   deleteUserFriend,
   getAllUsers,
-  getCurrentUser,
+  getUser,
   getUserFriends,
 } from "@/lib/firebase";
 import React, { useEffect, useState } from "react";
@@ -37,16 +37,9 @@ export default function FriendsPage() {
   const [userId, setUserId] = useState("");
 
   useEffect(() => {
-    fetchAllUsers();
-    setUserId(() => localStorage.getItem("userAuth"));
-  }, []);
-
-  useEffect(() => {
     fetchUserProfile();
-  }, []);
-
-  useEffect(() => {
-    fetchUserFriends();
+    fetchUserProfile();
+    fetchAllUsers();
   }, []);
 
   const onSearchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,13 +60,15 @@ export default function FriendsPage() {
 
   const fetchAllUsers = async () => {
     const fetchedUsers = await getAllUsers();
-    const filteredUsers = fetchedUsers.filter((user) => user.id !== userId);
+    const filteredUsers = fetchedUsers.filter(
+      (user) => user.id !== localStorage.getItem("userAuth")
+    );
     setUsers(filteredUsers);
   };
 
   const fetchUserProfile = async () => {
-    const info = await getCurrentUser(userId as string);
-    setUserProfile(() => info);
+    const info = await getUser();
+    setUserProfile(info);
   };
 
   const fetchUserFriends = async () => {
@@ -98,8 +93,6 @@ export default function FriendsPage() {
     await fetchUserProfile();
     await fetchUserFriends();
   };
-
-  console.log;
 
   return (
     <div className="min-h-screen min-w-[50vw]">
