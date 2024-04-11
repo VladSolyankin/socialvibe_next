@@ -10,11 +10,13 @@ import {
   query,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db, storage, auth, rtdb } from "./config";
 import { IUserPhotos } from "@/types";
 import { ref, uploadBytes } from "firebase/storage";
 import { set, ref as dbRef, get, child, update } from "firebase/database";
+import { nanoid } from "ai";
 
 const storageUserId =
   typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
@@ -270,48 +272,78 @@ export const deleteUserImage = async (index: number) => {
   await updateDoc(userRef, { photos });
 };
 
-// RTDB
+export const initChats = async () => {
+  console.log("initChats");
+  const chatsRef = collection(db, "chats");
+  const querySnapshot = await getDocs(chatsRef);
 
-export const initializeDatabaseUser = (friends) => {
-  const chats = friends.map((friend, index: number) => {
-    return {
-      title: friend.full_name,
-      members: [friend.id, storageUserId],
-    };
-  });
+  if (querySnapshot.empty) {
+    const users = await getUserFriends();
 
-  const chatObject = Object.assign({}, ...chats);
+    users.forEach(async (user) => {
+      if (user.id !== storageUserId) {
+        await setDoc(doc(db, `chats/${user.id}`), {
+          title: user.full_name,
+          users: [storageUserId, user.id],
+          messages: [],
+          preview: user.avatar_url || "/default_profile.png",
+        });
+      }
+    });
+  }
+};
 
-  get(child(dbRef(rtdb), `/users/${storageUserId}/chats`)).then((res) => {
-    const updates = {};
-    updates[`users/${storageUserId}/chats`] = { ...res.val(), ...chats };
-    update(dbRef(rtdb), updates);
+export const getChats = async () => {
+  console.log("getChats");
+  const chatsRef = collection(db, "chats");
+  const querySnapshot = await getDocs(chatsRef);
+
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+};
+
+export const addChat = async (title: string) => {
+  console.log("addChat");
+  const chatsRef = collection(db, "chats");
+
+  const newChat = {
+    title,
+    messages: [],
+  };
+
+  await addDoc(chatsRef, newChat);
+};
+
+export const sendMessage = async (chatId: string, text: string) => {
+  console.log("sendMessage");
+  const chatDoc = await getDoc(doc(db, `chats/${chatId}`));
+
+  const message = {
+    id: nanoid(),
+    text,
+    date: new Date().toLocaleDateString("ru-RU"),
+  };
+
+  chatDoc.ref.update({
+    messages: arrayUnion(message),
   });
 };
 
-export const addNewChat = (title: string = "title", members: [] = []) => {
-  get(child(dbRef(rtdb), `/users/${storageUserId}/chats`)).then((res) => {
-    const lastChatIndex: number = Object.keys(res.val()).length;
-    const newChat = {
-      title: title,
-      members: [...members, storageUserId],
-    };
-    const updates = {};
-    updates[`users/${storageUserId}/chats/${lastChatIndex}`] = newChat;
-    update(dbRef(rtdb), updates);
-  });
-};
+export const deleteMessage = async (
+  chatTitle: string,
+  messageIndex: number
+) => {
+  console.log("deleteMessage");
+  const chatsRef = collection(db, "chats");
+  const chatQuery = query(chatsRef, where("title", "==", chatTitle));
+  const querySnapshot = await getDocs(chatQuery);
 
-export const addNewChatMessage = (chatIndex: number) => {
-  get(child(dbRef(rtdb), `/users/${storageUserId}/chats/${chatIndex}`)).then(
-    (res) => {
-      const updates = {};
-      updates[`users/${storageUserId}/chats/${chatIndex}`] = newChat;
-      update(dbRef(rtdb), updates);
-    }
-  );
-};
+  const chatDoc = querySnapshot.docs[0];
+  const messages = chatDoc.data().messages;
 
-export const getDatabaseChats = () => {
-  get(dbRef(rtdb)).then((res) => console.log(res.val()));
+  messages.splice(messageIndex, 1);
+
+  chatDoc.ref.update({ messages });
 };

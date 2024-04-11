@@ -40,6 +40,7 @@ export default function FriendsPage() {
     fetchUserProfile();
     fetchUserProfile();
     fetchAllUsers();
+    fetchUserFriends();
   }, []);
 
   const onSearchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,7 +120,7 @@ export default function FriendsPage() {
               onChange={(e) => onSearchFriends(e)}
             />
             <Card className="flex flex-col h-full p-5">
-              {friends.length ? (
+              {friends.length > 0 ? (
                 (isSearched ? filteredFriends : friends).length ? (
                   <div className="flex flex-col gap-5">
                     {(isSearched ? filteredFriends : friends).map((friend) => (

@@ -19,10 +19,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  addNewChat,
-  getDatabaseChats,
+  initChats,
+  getChats,
+  addChat,
+  sendMessage,
+  deleteMessage,
   getUserFriends,
-  initializeDatabaseUser,
 } from "@/lib/firebase";
 import { CornerDownLeft, Mic, Paperclip } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -38,6 +40,7 @@ export default function ChatsPage() {
   const [userFriends, setUserFriends] = useState([]);
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
+  const [openedChat, setOpenedChat] = useState({});
 
   useEffect(() => {
     fetchedFriends();
@@ -45,11 +48,12 @@ export default function ChatsPage() {
 
   useEffect(() => {
     initializeChats();
-  });
+  }, []);
 
   const initializeChats = async () => {
-    await getDatabaseChats();
-    await initializeDatabaseUser(userFriends);
+    await initChats();
+    const fetchedChats = await getChats();
+    setUserChats(() => fetchedChats);
   };
 
   const fetchedFriends = async () => {
@@ -57,14 +61,17 @@ export default function ChatsPage() {
     setUserFriends(() => fetch);
   };
 
-  const onChatSelect = async () => {
+  const onChatSelect = async (index: number) => {
     setIsChatVisible(true);
+    setCurrentChatIndex(index);
+    //const chatMessages = await getChatMessages(index);
   };
 
   const onChatSearch = async () => {};
 
-  const onMessageSend = () => {
+  const onMessageSend = async (chatTitle: string) => {
     setCurrentMessage("");
+    await sendMessage(chatTitle, currentMessage);
   };
 
   const onMessageChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -72,7 +79,7 @@ export default function ChatsPage() {
   };
 
   const onAddNewChat = async () => {
-    await addNewChat();
+    await addChat("Test chat");
   };
 
   return (
@@ -103,7 +110,7 @@ export default function ChatsPage() {
           </CardDescription>
           <Input placeholder="🔍 Найти чат..." />
           <div className="flex flex-col gap-1">
-            {userFriends.map((friend) => {
+            {userFriends.map((friend, index) => {
               return (
                 <div key={nanoid()}>
                   <ChatItem
@@ -118,7 +125,7 @@ export default function ChatsPage() {
                     subtitle={"What are you doing?"}
                     date={new Date()}
                     unread={0}
-                    onClick={() => onChatSelect()}
+                    onClick={() => onChatSelect(index)}
                   />
                 </div>
               );
@@ -163,7 +170,7 @@ export default function ChatsPage() {
                   <Button
                     size="sm"
                     className="ml-auto gap-1.5"
-                    onClick={() => onMessageSend()}
+                    onClick={() => onMessageSend(currentChatIndex.toString())}
                   >
                     Отправить
                     <CornerDownLeft className="size-3.5" />
@@ -182,28 +189,3 @@ export default function ChatsPage() {
     </div>
   );
 }
-
-/*
-
-users:
-  user1:
-    chat1:
-      title:
-      last_message:
-      last_time_sent:
-    chat2:
-
-    messages:
-      chat1:
-        m1
-        m2
-        m3
-      chat2:
-        m1
-        m2
-        ...
-    
-  user2:
-    chat1:
-    chat2:
-*/
