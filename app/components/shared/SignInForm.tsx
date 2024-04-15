@@ -59,7 +59,7 @@ export const SignInForm = () => {
         localStorage.setItem("userAuth", userCredentials.user.uid);
         localStorage.setItem("isLogged", "true");
         pageNavigator("/news");
-        changeUserOnline();
+        changeUserOnline(true);
         toast({
           title: "✅ Вход выполнен",
           description: "Добро пожаловать!",
@@ -80,74 +80,70 @@ export const SignInForm = () => {
   };
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onFormSubmit)}
-        className="w-[50%] flex flex-col justify-center items-center gap-5"
+    <div className="flex flex-col gap-3 items-center justify-center text-center w-full basis-1/2">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onFormSubmit)}
+          className="w-[50%] flex flex-col justify-center items-center gap-5"
+        >
+          <h1 className="text-3xl font-semibold">Вход в аккаунт</h1>
+          <p className="text-lg text-gray-400">
+            Введите логин и пароль для входа
+          </p>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="flex flex-col items-center my-3">
+                <Label>Логин (email)</Label>
+                <FormControl>
+                  <Input placeholder="Логин тут..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="flex flex-col items-center my-3">
+                <Label>Пароль</Label>
+                <FormControl>
+                  <Input placeholder="Пароль тут..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          ></FormField>
+          <Button type="submit">Войти</Button>
+          <div className="flex items-center justify-center gap-3">
+            <Separator className="w-24" />
+            <Label className="text-md">Или, войдите с помощью </Label>
+            <Separator className="w-24" />
+          </div>
+          <Button
+            variant="outline"
+            type="button"
+            disabled={isLoading}
+            onClick={onSubmit}
+          >
+            {isLoading ? (
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Icons.google className="mr-2 h-4 w-4" />
+            )}{" "}
+            Gmail
+          </Button>
+        </form>
+      </Form>
+      <Button
+        variant="link"
+        className="text-lg"
+        onClick={() => pageNavigator("/register")}
       >
-        <h1 className="text-3xl font-semibold">Вход в аккаунт</h1>
-        <p className="text-lg text-gray-400">
-          Введите логин и пароль для входа
-        </p>
-
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem className="flex flex-col items-center my-3">
-              <Label>Логин (email)</Label>
-              <FormControl>
-                <Input placeholder="Логин тут..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        ></FormField>
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem className="flex flex-col items-center my-3">
-              <Label>Пароль</Label>
-              <FormControl>
-                <Input placeholder="Пароль тут..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        ></FormField>
-
-        <Button type="submit">Войти</Button>
-
-        <div className="flex items-center justify-center gap-3">
-          <Separator className="w-24" />
-          <Label className="text-md">Или, войдите с помощью </Label>
-          <Separator className="w-24" />
-        </div>
-
-        <Button
-          variant="outline"
-          type="button"
-          disabled={isLoading}
-          onClick={onSubmit}
-        >
-          {isLoading ? (
-            <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Icons.google className="mr-2 h-4 w-4" />
-          )}{" "}
-          Gmail
-        </Button>
-
-        <Button
-          variant="link"
-          className="text-lg"
-          onClick={() => pageNavigator("/register")}
-        >
-          Ещё нет аккаунта?
-        </Button>
-      </form>
-    </Form>
+        Ещё нет аккаунта?
+      </Button>
+    </div>
   );
 };

@@ -10,7 +10,7 @@ export default function SignIn() {
   return (
     <div className="flex h-screen w-screen items-center justify-center max-[1300px]:flex-col overflow-x-hidden">
       <div className="flex laptop:flex-row laptop:flex-col h-[80%] w-[80%] border-2 border-gray-600 rounded-2xl">
-        <div className="w-[50%] relative p-5">
+        <div className="w-[50%] relative p-5 basis-1/2">
           <Image
             src={LogoPicture}
             alt="SocialVibe Logo"

@@ -1,6 +1,7 @@
 "use client";
 import {
   DocumentData,
+  Timestamp,
   addDoc,
   arrayUnion,
   collection,
@@ -8,6 +9,7 @@ import {
   getDoc,
   getDocs,
   query,
+  serverTimestamp,
   setDoc,
   updateDoc,
   where,
@@ -54,7 +56,7 @@ export const createUserDocument = async (
       is_online: true,
       friends: [],
       photos: {
-        albums: [],
+        albums: {},
         user_images: [],
       },
       post_ids: [],
@@ -113,13 +115,13 @@ export const changeUserImage = async (imageUrl: string) => {
   }
 };
 
-export const changeUserOnline = async () => {
+export const changeUserOnline = async (isOnline: boolean) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
   const userIsOnline = userDoc.data().is_online;
 
-  await updateDoc(userRef, { is_online: !userIsOnline });
+  await updateDoc(userRef, { is_online: isOnline });
 };
 
 export const addUserFriend = async (id: string) => {
@@ -162,7 +164,6 @@ export const getUserFriends = async () => {
 };
 
 // Новости
-export const getAllPosts = () => {};
 
 export const getUserPosts = async () => {
   const q = query(collection(db, `users/${storageUserId}/posts`));
@@ -170,6 +171,35 @@ export const getUserPosts = async () => {
   const userPosts = await getDocs(q);
 
   return userPosts;
+};
+
+export const createUserPost = async (post) => {
+  const userRef = collection(db, `users/${storageUserId}/posts`);
+
+  const newPost = {
+    id: post.id,
+    images: [...post.images],
+    comments: [],
+    likes: 0,
+    date: serverTimestamp(),
+    content: post.content,
+  };
+
+  await addDoc(userRef, newPost);
+};
+
+export const addPostComment = async (postId: string, comment) => {
+  const post = await getDocs(
+    query(collection(db, `posts`), where("id", "==", postId))
+  );
+
+  await post.forEach((doc) => {
+    updateDoc(doc.ref, {
+      comments: arrayUnion({
+        comments: comment,
+      }),
+    });
+  });
 };
 
 export const changePostLikeCount = async (postId: string, add: boolean) => {
@@ -218,7 +248,7 @@ export const addUserAlbum = async (albumTitle: string, imageUrl: string) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userAlbums = userDoc.data().photos.albums;
+  const photos = userDoc.data().photos;
 
   const newAlbum = {
     title: albumTitle,
@@ -227,9 +257,9 @@ export const addUserAlbum = async (albumTitle: string, imageUrl: string) => {
     date: new Date().toLocaleDateString("ru-RU"),
   };
 
-  userAlbums.push(newAlbum);
+  photos.albums.push(newAlbum);
 
-  await updateDoc(userRef, { photos: { albums: userAlbums } });
+  await updateDoc(userRef, { photos });
 };
 
 export const addAlbumImage = async (
@@ -237,10 +267,11 @@ export const addAlbumImage = async (
   imageUrl: string,
   imageTitle: string
 ) => {
+  console.log("image added");
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const albumImages = userDoc.data().photos.albums[albumIndex].images;
+  const albumImages = userDoc.data().photos;
 
   const newImage = {
     url: imageUrl,
@@ -248,9 +279,20 @@ export const addAlbumImage = async (
     title: imageTitle,
   };
 
-  albumImages.push(newImage);
+  albumImages.albums[albumIndex].images.push(newImage);
 
-  await updateDoc(userRef, { photos: { albums: { images: albumImages } } });
+  await updateDoc(userRef, { albumImages });
+};
+
+export const deleteAlbum = async (albumIndex: number) => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+
+  const userAlbums = userDoc.data().photos.albums;
+
+  userAlbums.splice(albumIndex, 1);
+
+  await updateDoc(userRef, { photos: { albums: userAlbums } });
 };
 
 export const addUserStorageImage = async (title: string, file: File) => {
@@ -344,6 +386,5 @@ export const deleteMessage = async (
   const messages = chatDoc.data().messages;
 
   messages.splice(messageIndex, 1);
-
   chatDoc.ref.update({ messages });
 };

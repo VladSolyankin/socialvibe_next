@@ -30,8 +30,11 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import {
+  addAlbumImage,
   addUserAlbum,
+  addUserAlbumImage,
   addUserImage,
+  deleteAlbum,
   deleteUserImage,
   getUserAlbums,
   getUserImages,
@@ -168,9 +171,9 @@ export default function PhotosPage() {
     setIsConfirmOpen(true);
   };
 
-  const onAlbumDeleteConfirmed = () => {
-    deleteUserAlbum(selectedAlbum);
-    fetchUserAlbums();
+  const onAlbumDeleteConfirmed = async () => {
+    await deleteAlbum(userAlbums?.indexOf(selectedAlbum));
+    await fetchUserAlbums();
     setIsConfirmOpen(false);
     setIsAlbumOpen(false);
     setSelectedAlbum({});
@@ -195,13 +198,13 @@ export default function PhotosPage() {
       .catch((err) => console.log(err));
   };
 
-  const onAddNewAlbumImage = (imageUrl: string) => {
-    addUserAlbumImage(selectedAlbum, imageUrl)
-      .then(() => {
-        fetchUserAlbums();
-        setAddImageTitle("");
-      })
-      .catch((err) => console.log(err));
+  const onAddNewAlbumImage = async () => {
+    await addAlbumImage(
+      userAlbums?.indexOf(selectedAlbum),
+      selectedFileURL,
+      addImageTitle
+    );
+    await fetchUserImages();
   };
 
   const onSortChange = (sort: string) => {
@@ -296,7 +299,7 @@ export default function PhotosPage() {
                           <BiLandscape className="w-12 h-12" />
                           Выберите или перетащите изображение
                         </div>
-                        <Image
+                        <img
                           src={selectedFileURL}
                           className={`${
                             isFileSelected ? "block" : "hidden"
@@ -591,7 +594,9 @@ export default function PhotosPage() {
                 <Button variant="destructive" onClick={onDeleteAlbum}>
                   Удалить
                 </Button>
-                <Button>Добавить изображение</Button>
+                <Button onClick={() => onAddNewAlbumImage()}>
+                  Добавить изображение
+                </Button>
                 <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
                   <DialogContent>
                     <DialogHeader>

@@ -2,27 +2,27 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { HfInference } from "@huggingface/inference";
 import { PaperPlaneIcon } from "@radix-ui/react-icons";
 import { nanoid } from "ai";
 import { useChat } from "ai/react";
+import { saveAs } from "file-saver";
 import { DownloadIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
-import { saveAs } from "file-saver";
 
 interface Message {
   id: string;
@@ -53,7 +53,7 @@ export default function Chat() {
     }
   };
 
-  const onImagePromtSubmit = async () => {
+  const onImagePromptSubmit = async () => {
     const response = await hf.textToImage({
       inputs: `${input}`,
       model: "runwayml/stable-diffusion-v1-5",
@@ -203,11 +203,11 @@ export default function Chat() {
               onChange={handleInputChange}
               onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === "Enter") {
-                  onImagePromtSubmit();
+                  onImagePromptSubmit();
                 }
               }}
             />
-            <Button onSubmit={onImagePromtSubmit} size="icon">
+            <Button onSubmit={onImagePromptSubmit} size="icon">
               <PaperPlaneIcon />
             </Button>
           </div>
