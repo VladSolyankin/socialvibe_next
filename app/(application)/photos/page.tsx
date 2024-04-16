@@ -237,6 +237,7 @@ export default function PhotosPage() {
         break;
     }
   };
+
   return (
     <div>
       <Tabs defaultValue="photos" className="p-5 min-w-3xl">

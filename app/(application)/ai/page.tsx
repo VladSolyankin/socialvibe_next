@@ -23,6 +23,7 @@ import { saveAs } from "file-saver";
 import { DownloadIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
+import { CodeBlock, atomOneDark } from "react-code-blocks";
 
 interface Message {
   id: string;
@@ -69,6 +70,23 @@ export default function Chat() {
     saveAs(generatedImage, `${input ?? "image"}.png`);
   };
 
+  const renderCodeBlocks = (text: string) => {
+    return text.split(/```([\s\S]+?)```|`([\s\S]+?)`/g).map((part, index) => {
+      if (index % 3 === 0) {
+        return part; // Нечетные части - не код, просто возвращаем текст
+      } else {
+        return (
+          <CodeBlock
+            key={index}
+            text={part}
+            language="python"
+            theme={atomOneDark}
+          />
+        );
+      }
+    });
+  };
+
   return (
     <Tabs defaultValue="chat">
       <TabsList className="flex items-center justify-center mx-auto mt-5 w-[300px] gap-5">
@@ -112,13 +130,13 @@ export default function Chat() {
                         } mb-2`}
                       >
                         <div
-                          className={`min-w-[5vw] relative max-w-[50%] p-4 pb-6 rounded-md ${
+                          className={`min-w-[5vw] relative max-w-[70%] p-4 pb-6 rounded-md ${
                             message.role === "user"
                               ? "bg-blue-600 text-white"
                               : "bg-purple-600 text-white"
                           }`}
                         >
-                          {message.content}
+                          {renderCodeBlocks(message.content)}
                           <span className="absolute bottom-0 right-2 text-sm text-gray-400">
                             {new Date(message.createdAt).toLocaleTimeString()}
                           </span>

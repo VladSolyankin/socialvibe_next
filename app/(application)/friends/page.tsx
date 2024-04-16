@@ -1,6 +1,14 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,20 +19,11 @@ import {
   getUser,
   getUserFriends,
 } from "@/lib/firebase";
+import { nanoid } from "nanoid";
 import React, { useEffect, useState } from "react";
+import Emoji from "react-emoji-render";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
-import Emoji from "react-emoji-render";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { nanoid } from "nanoid";
-import { Separator } from "@/components/ui/separator";
 
 export default function FriendsPage() {
   const [users, setUsers] = useState([]);
@@ -34,7 +33,6 @@ export default function FriendsPage() {
   const [isAddFriendDialogOpen, setIsAddFriendDialogOpen] = useState(false);
   const [userProfile, setUserProfile] = useState({});
   const [isSearched, setIsSearched] = useState(false);
-  const [userId, setUserId] = useState("");
 
   useEffect(() => {
     fetchUserProfile();
@@ -49,6 +47,9 @@ export default function FriendsPage() {
       user.full_name.toLowerCase().includes(e.target.value)
     );
     setFilteredUsers(filter);
+    if (e.target.value === "") {
+      setIsSearched(false);
+    }
   };
 
   const onSearchFriends = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,6 +58,9 @@ export default function FriendsPage() {
       friend.full_name.toLowerCase().includes(e.target.value)
     );
     setFilteredFriends(filter);
+    if (e.target.value === "") {
+      setIsSearched(false);
+    }
   };
 
   const fetchAllUsers = async () => {
@@ -136,7 +140,7 @@ export default function FriendsPage() {
                                 : "/default_profile.png"
                             }
                             alt=""
-                            className="w-8 h-8"
+                            className="w-8 h-8 rounded-full"
                           />
                           <span>{friend.full_name}</span>
                         </div>
@@ -212,63 +216,66 @@ export default function FriendsPage() {
               {users.length ? (
                 (isSearched ? filteredFriends : friends) ? (
                   <div className="flex flex-col gap-5">
-                    {(isSearched ? filteredUsers : users).map((user) => (
-                      <Card
-                        key={nanoid()}
-                        className="flex items-center justify-between gap-5 w-full p-3"
-                      >
-                        <div className="flex gap-5 items-center">
-                          <img
-                            src={
-                              user.avatar_url
-                                ? user.avatar_url
-                                : "/default_profile.png"
-                            }
-                            alt=""
-                            className="w-8 h-8"
-                          />
-                          <span>{user.full_name}</span>
-                        </div>
-
-                        {userProfile.friends &&
-                        userProfile.friends.includes(user.id) ? (
-                          <Label className="text-sm text-blue-500">
-                            Уже в друзьях
-                          </Label>
-                        ) : (
-                          <Dialog
-                            open={isAddFriendDialogOpen}
-                            onOpenChange={setIsAddFriendDialogOpen}
-                          >
-                            <DialogTrigger>
-                              <Button className="text-sm focus-within:ring-1">
-                                Добавить в друзья
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                              <DialogHeader>
-                                <span>
-                                  Вы уверены, что хотите добавить{" "}
-                                  <span className="text-blue-400">
-                                    {" "}
-                                    {user.full_name}{" "}
+                    {users.map((user) => {
+                      return (
+                        <Card
+                          key={nanoid()}
+                          className="flex items-center justify-between gap-5 w-full p-3"
+                        >
+                          <div className="flex gap-5 items-center">
+                            <img
+                              src={
+                                user.avatar_url
+                                  ? user.avatar_url
+                                  : "/default_profile.png"
+                              }
+                              alt=""
+                              className="w-8 h-8 rounded-full"
+                            />
+                            <span>{user.full_name}</span>
+                          </div>
+                          {userProfile.friends &&
+                          userProfile.friends.includes(user.id) ? (
+                            <Label className="text-sm text-blue-500">
+                              Уже в друзьях
+                            </Label>
+                          ) : (
+                            <Dialog
+                              open={isAddFriendDialogOpen}
+                              onOpenChange={setIsAddFriendDialogOpen}
+                            >
+                              <DialogTrigger>
+                                <Button className="text-sm focus-within:ring-1">
+                                  Добавить в друзья
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent>
+                                <DialogHeader>
+                                  <span>
+                                    Вы уверены, что хотите добавить{" "}
+                                    <span className="text-blue-400">
+                                      {" "}
+                                      {user.full_name}{" "}
+                                    </span>
+                                    в друзья?
                                   </span>
-                                  в друзья?
-                                </span>
-                              </DialogHeader>
-                              <DialogFooter>
-                                <DialogClose className="flex gap-3">
-                                  <Button variant="destructive">Нет</Button>
-                                  <Button onClick={() => onAddFriend(user.id)}>
-                                    Да
-                                  </Button>
-                                </DialogClose>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-                        )}
-                      </Card>
-                    ))}
+                                </DialogHeader>
+                                <DialogFooter>
+                                  <DialogClose className="flex gap-3">
+                                    <Button variant="destructive">Нет</Button>
+                                    <Button
+                                      onClick={() => onAddFriend(user.id)}
+                                    >
+                                      Да
+                                    </Button>
+                                  </DialogClose>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </Card>
+                      );
+                    })}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-3">

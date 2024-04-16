@@ -189,16 +189,33 @@ export const createUserPost = async (post) => {
 };
 
 export const addPostComment = async (postId: string, comment) => {
+  console.log(postId);
   const post = await getDocs(
-    query(collection(db, `posts`), where("id", "==", postId))
+    query(
+      collection(db, `users/${storageUserId}/posts`),
+      where("id", "==", postId)
+    )
   );
 
-  await post.forEach((doc) => {
+  post.forEach((doc) => {
     updateDoc(doc.ref, {
       comments: arrayUnion({
-        comments: comment,
+        comment,
       }),
     });
+  });
+};
+
+export const getPostComments = async (postId: string) => {
+  const post = await getDocs(
+    query(
+      collection(db, `users/${storageUserId}/posts`),
+      where("id", "==", postId)
+    )
+  );
+
+  post.forEach((doc) => {
+    return doc.data().comments;
   });
 };
 
