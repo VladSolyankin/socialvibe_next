@@ -180,7 +180,7 @@ export default function ChatsPage() {
             </div>
           </div>
         ) : (
-          <div className="relative flex h-full min-h-[50vh] flex-col justify-center items-center gap-5 rounded-xl bg-muted/50 p-4 lg:col-span-2">
+          <div className="relative flex h-full min-h-[50vh] flex-col justify-center items-center gap-5 rounded-xl bg-muted/50 p-4 col-span-2">
             <Emoji className="text-5xl">👈😎</Emoji>
             <span className="text-lg">Выбери, с кем ты будешь общаться</span>
           </div>

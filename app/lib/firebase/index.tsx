@@ -25,7 +25,7 @@ const storageUserId =
 
 export const getAllUsers = async () => {
   const users = [];
-  const usersSnapshot = await getDocs(query(collection(db, "/users")));
+  const usersSnapshot = await getDocs(query(collection(db, "users")));
 
   usersSnapshot.forEach((user) => {
     users.push(user.data());
@@ -171,6 +171,26 @@ export const getUserPosts = async () => {
   const userPosts = await getDocs(q);
 
   return userPosts;
+};
+
+export const getAllUsersWithPosts = async () => {
+  const result = [];
+  const q = query(collection(db, "users"));
+  const querySnapshot = await getDocs(q);
+
+  for (const doc of querySnapshot.docs) {
+    const userData = { id: doc.id, ...doc.data(), posts: [] };
+    result.push(userData);
+
+    const postsQuery = query(collection(db, `users/${doc.id}/posts`));
+    const postsSnapshot = await getDocs(postsQuery);
+
+    postsSnapshot.forEach((postDoc) => {
+      userData.posts.push(postDoc.data());
+    });
+  }
+
+  return result;
 };
 
 export const createUserPost = async (post) => {
