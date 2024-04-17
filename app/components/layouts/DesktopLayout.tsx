@@ -57,6 +57,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
 
   const onUserLogout = () => {
     pageNavigator("/login");
+    localStorage.clear();
     changeUserOnline(false);
     toast({
       title: "✅ Вы успешно вышли",

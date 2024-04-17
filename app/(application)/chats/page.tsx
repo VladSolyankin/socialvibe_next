@@ -41,6 +41,7 @@ export default function ChatsPage() {
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
   const [openedChat, setOpenedChat] = useState({});
+  const [currentChatIndex, setCurrentChatIndex] = useState(0);
 
   useEffect(() => {
     fetchedFriends();
@@ -69,9 +70,9 @@ export default function ChatsPage() {
 
   const onChatSearch = async () => {};
 
-  const onMessageSend = async (chatTitle: string) => {
+  const onMessageSend = async () => {
     setCurrentMessage("");
-    await sendMessage(chatTitle, currentMessage);
+    await sendMessage(userChats[currentChatIndex].id, currentMessage);
   };
 
   const onMessageChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -110,32 +111,58 @@ export default function ChatsPage() {
           </CardDescription>
           <Input placeholder="🔍 Найти чат..." />
           <div className="flex flex-col gap-1">
-            {userFriends.map((friend, index) => {
-              return (
-                <div key={nanoid()}>
-                  <ChatItem
-                    className="text-black rounded-lg focus-within:ring-1 hover:ring-2 ring-blue-400"
-                    avatar={
-                      friend.avatar_url.length > 0
-                        ? friend.avatar_url
-                        : "/default_profile.png"
-                    }
-                    alt={"Reactjs"}
-                    title={friend.full_name}
-                    subtitle={"What are you doing?"}
-                    date={new Date()}
-                    unread={0}
-                    onClick={() => onChatSelect(index)}
-                  />
-                </div>
-              );
-            })}
+            {userChats &&
+              userChats.map((chat, index) => {
+                return (
+                  <div key={nanoid()}>
+                    <ChatItem
+                      className="text-black rounded-lg focus-within:ring-1 hover:ring-2 ring-blue-400"
+                      avatar={chat.preview ?? "/default_profile.png"}
+                      alt={"User message"}
+                      title={chat.title}
+                      subtitle={"Напишите сообщение..."}
+                      unread={0}
+                      onClick={() => onChatSelect(index)}
+                    />
+                  </div>
+                );
+              })}
           </div>
         </div>
 
         {isChatVisible ? (
-          <div className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 lg:col-span-2">
-            <div className="flex-1"></div>
+          <div className="flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 col-span-2">
+            <div className="flex flex-col flex-1">
+              {userChats[currentChatIndex].messages.length > 0 ? (
+                userChats[currentChatIndex].messages.map((message) => {
+                  return (
+                    <div
+                      key={nanoid()}
+                      className={`flex ${
+                        message.sender === localStorage.getItem("userAuth")
+                          ? "justify-end"
+                          : "justify-start"
+                      } mb-2`}
+                    >
+                      <div
+                        className={`min-w-[5vw] relative max-w-[70%] p-4 pb-6 rounded-md ${
+                          message.sender === localStorage.getItem("userAuth")
+                            ? "bg-blue-600 text-white text-right"
+                            : "bg-purple-600 text-white text-left"
+                        }`}
+                      >
+                        {message.text}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="w-full flex flex-col items-center justify-center gap-3">
+                  <Emoji className="text-5xl">😮</Emoji>
+                  <span className="text-lg">Сообщений нет</span>
+                </div>
+              )}
+            </div>
             <div className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring">
               <Label htmlFor="message" className="sr-only">
                 Message
@@ -170,7 +197,7 @@ export default function ChatsPage() {
                   <Button
                     size="sm"
                     className="ml-auto gap-1.5"
-                    onClick={() => onMessageSend(currentChatIndex.toString())}
+                    onClick={() => onMessageSend()}
                   >
                     Отправить
                     <CornerDownLeft className="size-3.5" />
@@ -180,7 +207,7 @@ export default function ChatsPage() {
             </div>
           </div>
         ) : (
-          <div className="relative flex h-full min-h-[50vh] flex-col justify-center items-center gap-5 rounded-xl bg-muted/50 p-4 lg:col-span-2">
+          <div className="relative flex h-full min-h-[50vh] flex-col justify-center items-center gap-5 rounded-xl bg-muted/50 p-4 col-span-2">
             <Emoji className="text-5xl">👈😎</Emoji>
             <span className="text-lg">Выбери, с кем ты будешь общаться</span>
           </div>
