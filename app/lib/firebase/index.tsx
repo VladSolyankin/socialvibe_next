@@ -62,9 +62,9 @@ export const createUserDocument = async (
       post_ids: [],
     });
 
-    await addDoc(collection(db, `users/${userId}/chats`), {});
+    //await addDoc(collection(db, `users/${userId}/chats`), {});
 
-    await addDoc(collection(db, `users/${userId}/posts`), {});
+    //await addDoc(collection(db, `users/${userId}/posts`), {});
   } catch (error) {
     console.log(error);
   }
@@ -352,20 +352,27 @@ export const deleteUserImage = async (index: number) => {
 };
 
 export const initChats = async () => {
-  console.log("initChats");
-  const chatsRef = collection(db, "chats");
+  const chatsRef = collection(db, `users/${storageUserId}/chats`);
   const querySnapshot = await getDocs(chatsRef);
+
+  const currentUser = await getDoc(doc(db, `users/${storageUserId}`));
+  const currentUserData = currentUser.data();
 
   if (querySnapshot.empty) {
     const users = await getUserFriends();
-
     users.forEach(async (user) => {
       if (user.id !== storageUserId) {
-        await setDoc(doc(db, `chats/${user.id}`), {
+        await setDoc(doc(db, `users/${storageUserId}/chats/${user.id}`), {
           title: user.full_name,
           users: [storageUserId, user.id],
           messages: [],
           preview: user.avatar_url || "/default_profile.png",
+        });
+        await setDoc(doc(db, `users/${user.id}/chats/${storageUserId}`), {
+          title: currentUserData.full_name,
+          users: [user.id, storageUserId],
+          messages: [],
+          preview: currentUserData.avatar_url || "/default_profile.png",
         });
       }
     });
@@ -373,8 +380,7 @@ export const initChats = async () => {
 };
 
 export const getChats = async () => {
-  console.log("getChats");
-  const chatsRef = collection(db, "chats");
+  const chatsRef = collection(db, `users/${storageUserId}/chats`);
   const querySnapshot = await getDocs(chatsRef);
 
   return querySnapshot.docs.map((doc) => ({
@@ -396,18 +402,30 @@ export const addChat = async (title: string) => {
 };
 
 export const sendMessage = async (chatId: string, text: string) => {
-  console.log("sendMessage");
-  const chatDoc = await getDoc(doc(db, `chats/${chatId}`));
+  const chatRef = doc(db, `users/${storageUserId}/chats/${chatId}`);
+  const chatDoc = await getDoc(chatRef);
 
   const message = {
     id: nanoid(),
     text,
     date: new Date().toLocaleDateString("ru-RU"),
+    sender: storageUserId,
   };
 
-  chatDoc.ref.update({
-    messages: arrayUnion(message),
-  });
+  const otherUserId = chatDoc.data().users.find((id) => id !== storageUserId);
+  const otherUserChatRef = doc(
+    db,
+    `users/${otherUserId}/chats/${storageUserId}`
+  );
+
+  await Promise.all([
+    updateDoc(chatRef, {
+      messages: arrayUnion(message),
+    }),
+    updateDoc(otherUserChatRef, {
+      messages: arrayUnion(message),
+    }),
+  ]);
 };
 
 export const deleteMessage = async (

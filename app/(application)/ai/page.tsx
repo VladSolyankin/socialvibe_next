@@ -73,7 +73,7 @@ export default function Chat() {
   const renderCodeBlocks = (text: string) => {
     return text.split(/```([\s\S]+?)```|`([\s\S]+?)`/g).map((part, index) => {
       if (index % 3 === 0) {
-        return part; // Нечетные части - не код, просто возвращаем текст
+        return part;
       } else {
         return (
           <CodeBlock

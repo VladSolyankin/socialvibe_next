@@ -17,15 +17,28 @@ const Hf = new HfInference(process.env.NEXT_PUBLIC_HF_TOKEN);
 
 export default function TestPage() {
   useEffect(() => {
-    async function main() {
-      const completion = await openai.chat.completions.create({
-        messages: [{ role: "system", content: "You are a helpful assistant." }],
-        model: "gpt-3.5-turbo",
-      });
-
-      console.log(completion.choices[0]);
-    }
+    query();
   }, []);
+
+  async function query(
+    data = {
+      inputs: "Hi, how are you?",
+    }
+  ) {
+    const response = await fetch(
+      "https://api-inference.huggingface.co/models/NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
+      {
+        headers: {
+          Authorization: "Bearer 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",
+        },
+        method: "POST",
+        body: JSON.stringify(data),
+      }
+    );
+    const result = await response.json();
+    console.log(result);
+    return result;
+  }
 
   return <div>test</div>;
 }
