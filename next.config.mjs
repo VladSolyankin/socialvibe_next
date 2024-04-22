@@ -15,7 +15,7 @@ const nextConfig = {
         ignoreBuildErrors: true
     },
     images: {
-        unoptimized: trueq
+        unoptimized: true
     }
 };
 
