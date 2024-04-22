@@ -57,6 +57,8 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
 
   const onUserLogout = () => {
     pageNavigator("/login");
+    document.cookie =
+      "userAuth=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     localStorage.clear();
     changeUserOnline(false);
     toast({
@@ -75,7 +77,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
         </SheetTrigger>
         <SheetContent>
           <SheetHeader className="flex flex-row items-center gap-2">
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center relative">
               <img
                 className="h-12 rounded-lg"
                 src="/socialvibe_logo.svg"
@@ -89,14 +91,19 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
           </SheetHeader>
           <div className="basis-1/6">
             <div
-              className="flex flex-col justify-center items-center my-5 gap-3 p-2"
+              className="flex flex-col justify-center items-center my-5 gap-3 p-2 relative"
               onClick={() => pageNavigator("/profile")}
             >
-              <img
-                className="w-12 h-12 rounded-3xl"
-                src={currentUser?.avatar_url || "/default_profile.png"}
-                alt=""
-              />
+              <div className="relative">
+                <img
+                  className="w-12 h-12 rounded-3xl"
+                  src={currentUser?.avatar_url || "/default_profile.png"}
+                  alt=""
+                />
+                <span
+                  className={`w-4 h-4 border-2 rounded-full absolute bottom-0 right-0 ${currentUser?.is_online ? "bg-green-500" : "bg-gray-600"}`}
+                ></span>
+              </div>
               <Label className="text-lg">Профиль</Label>
             </div>
             <ul className="flex flex-col items-start w-[150px]">

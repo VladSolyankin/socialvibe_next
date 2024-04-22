@@ -43,7 +43,7 @@ export default function MusicPage() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTrack, setCurrentTrack] = useState({});
   const audioRef = useRef<HTMLAudioElement | undefined>(
-    typeof Audio !== "undefined" ? new Audio("") : undefined
+    typeof Audio !== "undefined" ? new Audio("") : undefined,
   );
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function MusicPage() {
 
   const fetchPlaylistTracks = async (index: number) => {
     const playlistTracks = await getPlaylistTracks(
-      playlists.items[index].tracks.href
+      playlists.items[index].tracks.href,
     );
     await setPlaylistTracks(playlistTracks);
     console.log(playlistTracks);
@@ -132,11 +132,11 @@ export default function MusicPage() {
                       onClick={() => onPlaylistOpen(playlist, index)}
                     >
                       <Card>
-                        <CardContent className="flex items-center justify-center">
+                        <CardContent className="flex items-center justify-center p-0">
                           <img
                             src={`${playlist.images[0].url}`}
                             alt=""
-                            className="w-64 h-52 object-cover rounded-xl"
+                            className="w-64 h-52 object-fill rounded-xl"
                           />
                         </CardContent>
                       </Card>
@@ -216,7 +216,7 @@ export default function MusicPage() {
               </DialogHeader>
 
               <Card className="w-full">
-                {playlistTracks.length > 0 &&
+                {playlistTracks &&
                   playlistTracks.map((track) => {
                     return (
                       <CardContent
@@ -267,7 +267,6 @@ export default function MusicPage() {
                     .join(", ")}
                 </span>
               </div>
-              {/* audio элемент с текущим треком */}
               <audio
                 ref={audioRef}
                 src={`${currentTrack?.preview_url || ""}`}

@@ -25,6 +25,7 @@ import {
   sendMessage,
   deleteMessage,
   getUserFriends,
+  getChat,
 } from "@/lib/firebase";
 import { CornerDownLeft, Mic, Paperclip } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -34,6 +35,9 @@ import { BsFilterRight } from "react-icons/bs";
 import { MdAddCircleOutline } from "react-icons/md";
 import Emoji from "react-emoji-render";
 import { nanoid } from "nanoid";
+import { onSnapshot } from "@firebase/firestore";
+import { collection, query } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 
 export default function ChatsPage() {
   const [userChats, setUserChats] = useState<IUserChats[]>();
@@ -73,6 +77,12 @@ export default function ChatsPage() {
   const onMessageSend = async () => {
     setCurrentMessage("");
     await sendMessage(userChats[currentChatIndex].id, currentMessage);
+    const chat = await getChat(userChats[currentChatIndex].id);
+    setUserChats(() => {
+      const newChats = [...userChats];
+      newChats[currentChatIndex] = chat;
+      return newChats;
+    });
   };
 
   const onMessageChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -132,7 +142,7 @@ export default function ChatsPage() {
 
         {isChatVisible ? (
           <div className="flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 col-span-2">
-            <div className="flex flex-col flex-1">
+            <div className="flex flex-col flex-1 overflow-y-scroll">
               {userChats[currentChatIndex].messages.length > 0 ? (
                 userChats[currentChatIndex].messages.map((message) => {
                   return (
@@ -145,13 +155,16 @@ export default function ChatsPage() {
                       } mb-2`}
                     >
                       <div
-                        className={`min-w-[5vw] relative max-w-[70%] p-4 pb-6 rounded-md ${
+                        className={`min-w-[100px] relative max-w-[70%] p-4 pb-6 rounded-md ${
                           message.sender === localStorage.getItem("userAuth")
                             ? "bg-blue-600 text-white text-right"
                             : "bg-purple-600 text-white text-left"
                         }`}
                       >
                         {message.text}
+                        <span className="absolute bottom-0 right-2 text-sm text-gray-400">
+                          {message.date}
+                        </span>
                       </div>
                     </div>
                   );
