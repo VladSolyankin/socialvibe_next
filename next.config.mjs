@@ -2,6 +2,7 @@
 const nextConfig = {
     output: 'export',
     reactStrictMode: false,
+<<<<<<< HEAD
     async redirects() {
         return [
             {
@@ -11,6 +12,8 @@ const nextConfig = {
             },
         ];
     },
+=======
+>>>>>>> a60c1327d93167af7473f70f527fa90c06266716
     typescript: {
         ignoreBuildErrors: true
     },
