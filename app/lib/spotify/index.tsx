@@ -1,7 +1,7 @@
 // main.js
-import getSpotifyToken from './token.tsx';
+import getSpotifyToken from "./token.tsx";
 
-const BASE_URL = 'https://api.spotify.com/v1';
+const BASE_URL = "https://api.spotify.com/v1";
 
 async function getAllArtists(query) {
   try {
@@ -12,12 +12,12 @@ async function getAllArtists(query) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     const data = await response.json();
     return data.artists;
   } catch (error) {
-    console.error('Error getting artists:', error.message);
+    console.error("Error getting artists:", error.message);
     throw error;
   }
 }
@@ -31,12 +31,12 @@ async function getTracks(query) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     const data = await response.json();
     return data.tracks;
   } catch (error) {
-    console.error('Error getting tracks:', error.message);
+    console.error("Error getting tracks:", error.message);
     throw error;
   }
 }
@@ -50,12 +50,12 @@ async function getSearchedTracks(query, offset) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     const data = await response.json();
     return data.tracks;
   } catch (error) {
-    console.error('Error getting searched tracks:', error.message);
+    console.error("Error getting searched tracks:", error.message);
     throw error;
   }
 }
@@ -71,7 +71,7 @@ async function getTracksByIds(ids) {
     const data = await response.json();
     return data.tracks;
   } catch (error) {
-    console.error('Error getting tracks by IDs:', error.message);
+    console.error("Error getting tracks by IDs:", error.message);
     throw error;
   }
 }
@@ -80,17 +80,17 @@ async function getPlaylists(query) {
   try {
     const token = await getSpotifyToken();
     const response = await fetch(
-      `${BASE_URL}/search?q=${query}&type=playlist&limit=50`,
+      `${BASE_URL}/search?q=${query}&type=track&limit=50`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
-    const data = await response.json().then(res => res.playlists);
+    const data = await response.json().then((res) => res.playlists);
     return data;
   } catch (error) {
-    console.error('Error getting playlists:', error.message);
+    console.error("Error getting playlists:", error.message);
     throw error;
   }
 }
@@ -98,7 +98,7 @@ async function getPlaylists(query) {
 async function getPlaylistTracks(playlistUrl) {
   try {
     const token = await getSpotifyToken();
-    const response = await fetch(`${playlistUrl}`, {
+    const response = await fetch(`${playlistUrl}&market=US`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -106,7 +106,7 @@ async function getPlaylistTracks(playlistUrl) {
     const data = await response.json();
     return data.items;
   } catch (error) {
-    console.error('Error getting playlist tracks:', error.message);
+    console.error("Error getting playlist tracks:", error.message);
     throw error;
   }
 }
@@ -115,17 +115,17 @@ async function getPopularTracks() {
   try {
     const token = await getSpotifyToken();
     const response = await fetch(
-      `${BASE_URL}/search?q=${'eminem billie elish ariana grande justin bieber rap hip hop%20year=2024'}&type=track&`,
+      `${BASE_URL}/search?q=${"eminem billie elish ariana grande justin bieber rap hip hop%20year=2024"}&type=track&`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Error getting popular tracks:', error.message);
+    console.error("Error getting popular tracks:", error.message);
     throw error;
   }
 }

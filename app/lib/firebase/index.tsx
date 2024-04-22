@@ -13,6 +13,7 @@ import {
   setDoc,
   updateDoc,
   where,
+  arrayRemove,
 } from "firebase/firestore";
 import { db, storage, auth, rtdb } from "./config";
 import { IUserPhotos } from "@/types";
@@ -38,7 +39,7 @@ export const createUserDocument = async (
   fullName: string,
   userEmail: string,
   birthDate: string,
-  city?: string
+  city?: string,
 ) => {
   try {
     console.log("creating user");
@@ -102,6 +103,20 @@ export const changeUserProfileInfo = async () => {
   const userDoc = await getDoc(userRef);
 };
 
+export const changeUserStatus = async (status: string) => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+
+  const userStatus = userDoc.data().info.status;
+
+  if (userStatus !== status) {
+    await updateDoc(userRef, { "info.status": status });
+    return true;
+  } else {
+    return false;
+  }
+};
+
 export const changeUserImage = async (imageUrl: string) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
@@ -153,7 +168,7 @@ export const getUserFriends = async () => {
   const friendsIds = userDoc.data().friends;
 
   const friendsPromises = friendsIds.map((id) =>
-    getDoc(doc(db, `/users/${id}`))
+    getDoc(doc(db, `/users/${id}`)),
   );
 
   const friendsData = (await Promise.all(friendsPromises))
@@ -203,6 +218,7 @@ export const createUserPost = async (post) => {
     likes: 0,
     date: serverTimestamp(),
     content: post.content,
+    users_liked: [],
   };
 
   await addDoc(userRef, newPost);
@@ -213,8 +229,8 @@ export const addPostComment = async (postId: string, comment) => {
   const post = await getDocs(
     query(
       collection(db, `users/${storageUserId}/posts`),
-      where("id", "==", postId)
-    )
+      where("id", "==", postId),
+    ),
   );
 
   post.forEach((doc) => {
@@ -230,8 +246,8 @@ export const getPostComments = async (postId: string) => {
   const post = await getDocs(
     query(
       collection(db, `users/${storageUserId}/posts`),
-      where("id", "==", postId)
-    )
+      where("id", "==", postId),
+    ),
   );
 
   post.forEach((doc) => {
@@ -240,10 +256,20 @@ export const getPostComments = async (postId: string) => {
 };
 
 export const changePostLikeCount = async (postId: string, add: boolean) => {
-  const userRef = doc(db, `users/${storageUserId}/posts/${postId}`);
-  const userDoc = await getDoc(userRef);
+  const post = await getDocs(
+    query(
+      collection(db, `users/${storageUserId}/posts`),
+      where("id", "==", postId),
+    ),
+  );
 
-  const likeCount = userDoc.data().likes;
+  const likedDoc = post.docs[0];
+  const likeCount = post.docs[0].data().likes;
+  const userRef = doc(db, `users/${storageUserId}/posts/${likedDoc.id}`);
+
+  likedDoc.data().users_liked.includes(storageUserId)
+    ? await updateDoc(userRef, { users_liked: arrayRemove(storageUserId) })
+    : await updateDoc(userRef, { users_liked: arrayUnion(storageUserId) });
 
   await updateDoc(userRef, { likes: add ? likeCount + 1 : likeCount - 1 });
 };
@@ -302,7 +328,7 @@ export const addUserAlbum = async (albumTitle: string, imageUrl: string) => {
 export const addAlbumImage = async (
   albumIndex: number,
   imageUrl: string,
-  imageTitle: string
+  imageTitle: string,
 ) => {
   console.log("image added");
   const userRef = doc(db, `users/${storageUserId}`);
@@ -389,6 +415,13 @@ export const getChats = async () => {
   }));
 };
 
+export const getChat = async (chatId: string) => {
+  const chatRef = doc(db, `users/${storageUserId}/chats/${chatId}`);
+  const chatDoc = await getDoc(chatRef);
+
+  return chatDoc.data();
+};
+
 export const addChat = async (title: string) => {
   console.log("addChat");
   const chatsRef = collection(db, "chats");
@@ -408,14 +441,14 @@ export const sendMessage = async (chatId: string, text: string) => {
   const message = {
     id: nanoid(),
     text,
-    date: new Date().toLocaleDateString("ru-RU"),
+    date: new Date().toLocaleTimeString("ru-RU"),
     sender: storageUserId,
   };
 
   const otherUserId = chatDoc.data().users.find((id) => id !== storageUserId);
   const otherUserChatRef = doc(
     db,
-    `users/${otherUserId}/chats/${storageUserId}`
+    `users/${otherUserId}/chats/${storageUserId}`,
   );
 
   await Promise.all([
@@ -430,7 +463,7 @@ export const sendMessage = async (chatId: string, text: string) => {
 
 export const deleteMessage = async (
   chatTitle: string,
-  messageIndex: number
+  messageIndex: number,
 ) => {
   console.log("deleteMessage");
   const chatsRef = collection(db, "chats");

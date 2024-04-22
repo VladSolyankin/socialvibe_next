@@ -1,0 +1,304 @@
+[debug] [2024-04-22T21:22:18.952Z] ----------------------------------------------------------------------
+[debug] [2024-04-22T21:22:18.953Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2024-04-22T21:22:18.954Z] CLI Version:   13.7.3
+[debug] [2024-04-22T21:22:18.954Z] Platform:      win32
+[debug] [2024-04-22T21:22:18.954Z] Node Version:  v20.9.0
+[debug] [2024-04-22T21:22:18.954Z] Time:          Tue Apr 23 2024 00:22:18 GMT+0300 (Москва, стандартное время)
+[debug] [2024-04-22T21:22:18.954Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-04-22T21:22:18.998Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-04-22T21:22:18.998Z] > authorizing via signed-in user (vlad.solyankin977@gmail.com)
+[debug] [2024-04-22T21:22:18.998Z] [iam] checking project socialvibe-92a74 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2024-04-22T21:22:19.000Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions [none]
+[debug] [2024-04-22T21:22:19.000Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions x-goog-quota-user=projects/socialvibe-92a74
+[debug] [2024-04-22T21:22:19.000Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-04-22T21:22:19.805Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions 200
+[debug] [2024-04-22T21:22:19.805Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-04-22T21:22:19.806Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/socialvibe-92a74 [none]
+[debug] [2024-04-22T21:22:20.039Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/socialvibe-92a74 200
+[debug] [2024-04-22T21:22:20.039Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/socialvibe-92a74 {"projectId":"socialvibe-92a74","projectNumber":"880598482311","displayName":"socialvibe","name":"projects/socialvibe-92a74","resources":{"hostingSite":"socialvibe-92a74","realtimeDatabaseInstance":"socialvibe-92a74-default-rtdb","storageBucket":"socialvibe-92a74.appspot.com","locationId":"europe-west"},"state":"ACTIVE","etag":"1_a311359f-8704-4703-8887-ef07c4c4fcc9"}
+[debug] [2024-04-22T21:22:22.381Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites pageToken=&pageSize=10
+[debug] [2024-04-22T21:22:23.393Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites 200
+[debug] [2024-04-22T21:22:23.393Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites {"sites":[{"name":"projects/socialvibe-92a74/sites/socialvibe-92a74","defaultUrl":"https://socialvibe-92a74.web.app","appId":"1:880598482311:web:58fe6a15184d29260da722","type":"DEFAULT_SITE"}]}
+[debug] [2024-04-22T21:22:23.394Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:880598482311:web:58fe6a15184d29260da722/config [none]
+[debug] [2024-04-22T21:22:24.219Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:880598482311:web:58fe6a15184d29260da722/config 200
+[debug] [2024-04-22T21:22:24.219Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:880598482311:web:58fe6a15184d29260da722/config {"projectId":"socialvibe-92a74","appId":"1:880598482311:web:58fe6a15184d29260da722","databaseURL":"https://socialvibe-92a74-default-rtdb.europe-west1.firebasedatabase.app","storageBucket":"socialvibe-92a74.appspot.com","locationId":"europe-west","apiKey":"AIzaSyDY4Bt-0RpEOe5t7osFsDO_vm3whbAHeBU","authDomain":"socialvibe-92a74.firebaseapp.com","messagingSenderId":"880598482311","measurementId":"G-6YJPV73L91"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 14.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2024-04-22T21:22:29.040Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 [none]
+[debug] [2024-04-22T21:22:29.262Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 200
+[debug] [2024-04-22T21:22:29.263Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 {"name":"projects/socialvibe-92a74/sites/socialvibe-92a74","defaultUrl":"https://socialvibe-92a74.web.app","appId":"1:880598482311:web:58fe6a15184d29260da722","type":"DEFAULT_SITE"}
+[info]    ▲ Next.js 14.1.4
+
+[info]    - Environments: .env.local
+
+
+[info]    Creating an optimized production build ...
+
+[info]  ⚠ For production Image Optimization with Next.js, the optional 'sharp' package is strongly recommended. Run 'npm i sharp', and Next.js will use it automatically for Image Optimization.
+Read more: https://nextjs.org/docs/messages/sharp-missing-in-production
+
+[info] Compiler server unexpectedly exited with code: null and signal: SIGTERM
+
+[info]  ⚠ For production Image Optimization with Next.js, the optional 'sharp' package is strongly recommended. Run 'npm i sharp', and Next.js will use it automatically for Image Optimization.
+Read more: https://nextjs.org/docs/messages/sharp-missing-in-production
+
+[info] Compiler client unexpectedly exited with code: null and signal: SIGTERM
+
+[info]  ✓ Compiled successfully
+
+[info]    Skipping validation of types
+
+[info]    Linting ...
+
+[info] 
+./app/(application)/ai/page.tsx
+196:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/friends/page.tsx
+136:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+226:29  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/music/page.tsx
+136:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+181:35  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+228:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+255:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/photos/page.tsx
+76:6  Warning: React Hook useEffect has a missing dependency: 'userAlbums'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+303:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+366:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+366:25  Warning: img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+439:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+502:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+514:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+550:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+578:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/profile/page.tsx
+136:29  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+277:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+277:15  Warning: img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+
+./app/components/layouts/DesktopLayout.tsx
+47:6  Warning: React Hook useEffect has a missing dependency: 'toast'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+81:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+98:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/context/AuthContext.tsx
+33:6  Warning: React Hook useEffect has a missing dependency: 'navigate'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+
+[info]    Collecting page data ...
+
+[info]  ⚠ Using edge runtime on a page currently disables static generation for that page
+
+[info]    Generating static pages (0/15) ...
+
+[info]    Generating static pages (3/15) 
+
+[info]    Generating static pages (7/15) 
+   Generating static pages (11/15) 
+
+[info]  ✓ Generating static pages (15/15) 
+
+[info]    Finalizing page optimization ...
+
+[info]    Collecting build traces ...
+
+[info] 
+
+[info] Route (app)                              Size     First Load JS
+┌ ○ /                                    142 B          91.2 kB
+├ ○ /_not-found                          894 B          91.9 kB
+├ ○ /ai                                  46.2 kB         184 kB
+├ ℇ /api/chat                            0 B                0 B
+├ ○ /chats                               19.8 kB         342 kB
+├ ○ /friends                             5.34 kB         315 kB
+├ ○ /login                               2 kB            303 kB
+├ ○ /music                               5.31 kB         167 kB
+├ ○ /news                                10.7 kB         339 kB
+├ ○ /photos                              5.32 kB         339 kB
+├ ○ /profile                             5.59 kB         343 kB
+├ ○ /register                            1.84 kB         303 kB
+└ ○ /test                                973 B            92 kB
++ First Load JS shared by all            91 kB
+  ├ chunks/8069-b518e8cd2d69a0c2.js      29.3 kB
+  ├ chunks/fd9d1056-45934c32b519125a.js  53.4 kB
+  └ other shared chunks (total)          8.35 kB
+
+
+[info] 
+○  (Static)        prerendered as static content
+ℇ  (Edge Runtime)  server-rendered on demand using the Edge Runtime
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/chat/route
+[info] 
+[debug] [2024-04-22T21:23:01.186Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 [none]
+[debug] [2024-04-22T21:23:02.097Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 200
+[debug] [2024-04-22T21:23:02.097Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 {"name":"projects/socialvibe-92a74/sites/socialvibe-92a74","defaultUrl":"https://socialvibe-92a74.web.app","appId":"1:880598482311:web:58fe6a15184d29260da722","type":"DEFAULT_SITE"}
+[debug] [2024-04-22T21:23:02.163Z] Error: Source and destination must not be the same.
+    at C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\fs-extra\lib\util\stat.js:49:19
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2024-04-22T21:23:33.307Z] ----------------------------------------------------------------------
+[debug] [2024-04-22T21:23:33.308Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2024-04-22T21:23:33.309Z] CLI Version:   13.7.3
+[debug] [2024-04-22T21:23:33.309Z] Platform:      win32
+[debug] [2024-04-22T21:23:33.309Z] Node Version:  v20.9.0
+[debug] [2024-04-22T21:23:33.309Z] Time:          Tue Apr 23 2024 00:23:33 GMT+0300 (Москва, стандартное время)
+[debug] [2024-04-22T21:23:33.309Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-04-22T21:23:33.360Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-04-22T21:23:33.360Z] > authorizing via signed-in user (vlad.solyankin977@gmail.com)
+[debug] [2024-04-22T21:23:33.360Z] [iam] checking project socialvibe-92a74 for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2024-04-22T21:23:33.361Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions [none]
+[debug] [2024-04-22T21:23:33.362Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions x-goog-quota-user=projects/socialvibe-92a74
+[debug] [2024-04-22T21:23:33.362Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-04-22T21:23:34.162Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions 200
+[debug] [2024-04-22T21:23:34.162Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/socialvibe-92a74:testIamPermissions {"permissions":["firebase.projects.get","firebasehosting.sites.update"]}
+[debug] [2024-04-22T21:23:34.163Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/socialvibe-92a74 [none]
+[debug] [2024-04-22T21:23:34.431Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/socialvibe-92a74 200
+[debug] [2024-04-22T21:23:34.431Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/socialvibe-92a74 {"projectId":"socialvibe-92a74","projectNumber":"880598482311","displayName":"socialvibe","name":"projects/socialvibe-92a74","resources":{"hostingSite":"socialvibe-92a74","realtimeDatabaseInstance":"socialvibe-92a74-default-rtdb","storageBucket":"socialvibe-92a74.appspot.com","locationId":"europe-west"},"state":"ACTIVE","etag":"1_a311359f-8704-4703-8887-ef07c4c4fcc9"}
+[debug] [2024-04-22T21:23:36.758Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites pageToken=&pageSize=10
+[debug] [2024-04-22T21:23:37.789Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites 200
+[debug] [2024-04-22T21:23:37.789Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites {"sites":[{"name":"projects/socialvibe-92a74/sites/socialvibe-92a74","defaultUrl":"https://socialvibe-92a74.web.app","appId":"1:880598482311:web:58fe6a15184d29260da722","type":"DEFAULT_SITE"}]}
+[debug] [2024-04-22T21:23:37.789Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:880598482311:web:58fe6a15184d29260da722/config [none]
+[debug] [2024-04-22T21:23:38.611Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:880598482311:web:58fe6a15184d29260da722/config 200
+[debug] [2024-04-22T21:23:38.611Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/-/webApps/1:880598482311:web:58fe6a15184d29260da722/config {"projectId":"socialvibe-92a74","appId":"1:880598482311:web:58fe6a15184d29260da722","databaseURL":"https://socialvibe-92a74-default-rtdb.europe-west1.firebasedatabase.app","storageBucket":"socialvibe-92a74.appspot.com","locationId":"europe-west","apiKey":"AIzaSyDY4Bt-0RpEOe5t7osFsDO_vm3whbAHeBU","authDomain":"socialvibe-92a74.firebaseapp.com","messagingSenderId":"880598482311","measurementId":"G-6YJPV73L91"}
+[info] 
+   Thank you for trying our early preview of Next.js support on Firebase Hosting.
+   During the preview, support is best-effort and breaking changes can be expected. Proceed with caution.
+   The integration is known to work with Next.js version 12 - 14.0. You may encounter errors.
+
+   Documentation: https://firebase.google.com/docs/hosting/frameworks/nextjs
+   File a bug: https://github.com/firebase/firebase-tools/issues/new?template=bug_report.md
+   Submit a feature request: https://github.com/firebase/firebase-tools/issues/new?template=feature_request.md
+
+   We'd love to learn from you. Express your interest in helping us shape the future of Firebase Hosting: https://goo.gle/41enW5X
+
+[debug] [2024-04-22T21:23:43.429Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 [none]
+[debug] [2024-04-22T21:23:43.639Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 200
+[debug] [2024-04-22T21:23:43.639Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 {"name":"projects/socialvibe-92a74/sites/socialvibe-92a74","defaultUrl":"https://socialvibe-92a74.web.app","appId":"1:880598482311:web:58fe6a15184d29260da722","type":"DEFAULT_SITE"}
+[info]    ▲ Next.js 14.1.4
+
+[info]    - Environments: .env.local
+
+
+[info]    Creating an optimized production build ...
+
+[info]  ✓ Compiled successfully
+
+[info]    Skipping validation of types
+
+[info]    Linting ...
+
+[info] 
+./app/(application)/ai/page.tsx
+196:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/friends/page.tsx
+136:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+226:29  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/music/page.tsx
+136:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+181:35  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+228:27  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+255:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/photos/page.tsx
+76:6  Warning: React Hook useEffect has a missing dependency: 'userAlbums'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+303:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+366:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+366:25  Warning: img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+439:19  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+502:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+514:23  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+550:21  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+578:25  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/(application)/profile/page.tsx
+136:29  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+277:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+277:15  Warning: img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.  jsx-a11y/alt-text
+
+./app/components/layouts/DesktopLayout.tsx
+47:6  Warning: React Hook useEffect has a missing dependency: 'toast'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+81:15  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+98:17  Warning: Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+./app/context/AuthContext.tsx
+33:6  Warning: React Hook useEffect has a missing dependency: 'navigate'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/basic-features/eslint#disabling-rules
+
+[info]    Collecting page data ...
+
+[info]  ⚠ Using edge runtime on a page currently disables static generation for that page
+
+[info]    Generating static pages (0/15) ...
+
+[info]    Generating static pages (3/15) 
+
+[info]    Generating static pages (7/15) 
+   Generating static pages (11/15) 
+
+[info]  ✓ Generating static pages (15/15) 
+
+[info]    Finalizing page optimization ...
+
+[info]    Collecting build traces ...
+
+[info] 
+
+[info] Route (app)                              Size     First Load JS
+┌ ○ /                                    142 B          91.2 kB
+├ ○ /_not-found                          894 B          91.9 kB
+├ ○ /ai                                  46.2 kB         184 kB
+├ ℇ /api/chat                            0 B                0 B
+├ ○ /chats                               19.8 kB         342 kB
+├ ○ /friends                             5.34 kB         315 kB
+├ ○ /login                               2 kB            303 kB
+├ ○ /music                               5.31 kB         167 kB
+├ ○ /news                                10.7 kB         339 kB
+├ ○ /photos                              5.32 kB         339 kB
+├ ○ /profile                             5.59 kB         343 kB
+├ ○ /register                            1.84 kB         303 kB
+└ ○ /test                                973 B            92 kB
++ First Load JS shared by all            91 kB
+  ├ chunks/8069-b518e8cd2d69a0c2.js      29.3 kB
+  ├ chunks/fd9d1056-45934c32b519125a.js  53.4 kB
+  └ other shared chunks (total)          8.35 kB
+
+
+
+[info] ○  (Static)        prerendered as static content
+ℇ  (Edge Runtime)  server-rendered on demand using the Edge Runtime
+
+
+[info] Building a Cloud Function to run this application. This is needed due to:
+[info]  • non-static component /api/chat/route
+[info] 
+[debug] [2024-04-22T21:24:01.078Z] >>> [apiv2][query] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 [none]
+[debug] [2024-04-22T21:24:01.966Z] <<< [apiv2][status] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 200
+[debug] [2024-04-22T21:24:01.966Z] <<< [apiv2][body] GET https://firebasehosting.googleapis.com/v1beta1/projects/socialvibe-92a74/sites/socialvibe-92a74 {"name":"projects/socialvibe-92a74/sites/socialvibe-92a74","defaultUrl":"https://socialvibe-92a74.web.app","appId":"1:880598482311:web:58fe6a15184d29260da722","type":"DEFAULT_SITE"}
+[debug] [2024-04-22T21:24:02.035Z] Error: Source and destination must not be the same.
+    at C:\Users\user\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\fs-extra\lib\util\stat.js:49:19
+    at process.processTicksAndRejections (node:internal/process/task_queues:82:21)
+[error] 
+[error] Error: An unexpected error has occurred.

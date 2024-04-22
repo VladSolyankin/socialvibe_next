@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import {
   changeUserImage,
+  changeUserStatus,
   getUser,
   getUserFriends,
   getUsersProfileInfo,
@@ -31,6 +32,8 @@ import { Separator } from "@/components/ui/separator";
 import { IoPencilSharp } from "react-icons/io5";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader } from "@/components/shared/Loader";
+import { toast } from "@/components/ui/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function ProfilePage() {
   const [currentUser, setCurrentUser] = useState({});
@@ -42,6 +45,7 @@ export default function ProfilePage() {
   const [isEditStatusOpen, setIsEditStatusOpen] = useState(false);
   const [userFriends, setUserFriends] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     setTimeout(() => {
@@ -85,10 +89,30 @@ export default function ProfilePage() {
 
   const onHandleSave = async () => {
     changeUserImage(selectedFileURL);
+    await fetchUserProfile();
     setIsProfileChangeOpen(false);
     setIsFileSelected(false);
     setSelectedFile(undefined);
     setSelectedFileURL(undefined);
+  };
+
+  const onStatusChange = async (newStatus: string) => {
+    const response = await changeUserStatus(newStatus);
+    if (response) {
+      setIsEditStatusOpen(false);
+      toast({
+        title: "✅ Успешно",
+        description: "Статус изменился",
+        variant: "default",
+      });
+    } else {
+      toast({
+        title: "❗ У вас уже такой статус",
+        description: "Придумайте другой",
+        variant: "destructive",
+      });
+    }
+
     await fetchUserProfile();
   };
 
@@ -274,13 +298,18 @@ export default function ProfilePage() {
       <Dialog open={isEditStatusOpen} onOpenChange={setIsEditStatusOpen}>
         <DialogContent className="p-10">
           <DialogHeader>
-            <Input placeholder="✏️ Введите новый статус..." />
+            <Input
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              placeholder="✏️ Введите новый статус..."
+            />
           </DialogHeader>
           <div className="flex flex-col gap-4 py-4">
-            <Button onClick={onHandleSave}>Сохранить</Button>
+            <Button onClick={() => onStatusChange(status)}>Сохранить</Button>
           </div>
         </DialogContent>
       </Dialog>
+      <Toaster />
     </div>
   );
 }
