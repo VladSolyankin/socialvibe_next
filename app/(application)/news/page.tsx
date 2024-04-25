@@ -246,10 +246,7 @@ export default function NewsPage() {
                     .sort((a, b) => b.date - a.date)
                     .map((post: IUserPost, index) => {
                       return (
-                        <Card
-                          key={nanoid()}
-                          className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8"
-                        >
+                        <Card className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8">
                           <div className="flex flex-col justify-center gap-3">
                             <div className="flex items-center gap-3">
                               <img
@@ -368,10 +365,7 @@ export default function NewsPage() {
                                 </AccordionContent>
                               </AccordionItem>
                             </Accordion>
-                            <div
-                              key={nanoid()}
-                              className="flex items-center justify-center gap-3 my-5"
-                            >
+                            <div className="flex items-center justify-center gap-3 my-5">
                               <img
                                 src={`${
                                   currentUser.avatar_url ||
@@ -387,11 +381,19 @@ export default function NewsPage() {
                                 }}
                               >
                                 <Input
-                                  key={nanoid()}
                                   className="h-12"
                                   placeholder="Напишите новый комментарий..."
-                                  onChange={(e) => {
-                                    setCurrentPostComment(e.target.value);
+                                  name="comment"
+                                  value={currentPostComment}
+                                  onChange={(e) =>
+                                    setCurrentPostComment(e.target.value)
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      onCommentPost(post);
+                                      setCurrentPostComment("");
+                                    }
                                   }}
                                 />
                               </form>
@@ -420,13 +422,10 @@ export default function NewsPage() {
                 {isLoaded ? (
                   usersWithPosts.map((user: IUserPost, index) => {
                     return (
-                      <div key={nanoid()} className="flex flex-col gap-10">
+                      <div className="flex flex-col gap-10">
                         {user.posts.map((post) => {
                           return (
-                            <Card
-                              key={nanoid()}
-                              className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8"
-                            >
+                            <Card className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8">
                               <div className="flex flex-col justify-center gap-3">
                                 <div className="flex items-center gap-3">
                                   <img
@@ -497,7 +496,6 @@ export default function NewsPage() {
                                   <div className="flex flex-col"></div>
                                 </div>
                               </div>
-                              <div id="post-buttons" className=""></div>
                               <div>
                                 <Accordion collapsible type="single">
                                   <AccordionItem value="comments-item">
@@ -567,19 +565,18 @@ export default function NewsPage() {
                                       placeholder="Напишите новый комментарий..."
                                       name="comment"
                                       onChange={(e) => {
-                                        setCurrentPostComment(
-                                          () => e.target.value,
-                                        );
+                                        setCurrentPostComment(e.target.value);
                                       }}
                                       onKeyDown={(e) => {
                                         if (e.key === "Enter") {
+                                          e.preventDefault();
                                           onCommentPost(post);
-                                          e.target.value = "";
+                                          setCurrentPostComment("");
                                         }
                                       }}
                                     />
                                   </form>
-                                  <Button onSubmit={() => {}} size="icon">
+                                  <Button size="icon">
                                     <PaperPlaneIcon />
                                   </Button>
                                 </div>

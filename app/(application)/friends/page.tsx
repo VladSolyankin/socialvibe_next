@@ -24,6 +24,8 @@ import React, { useEffect, useState } from "react";
 import Emoji from "react-emoji-render";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
+import PeopleList from "@/components/pages/friends/PeopleList";
+import FriendsList from "@/components/pages/friends/FriendsList";
 
 export default function FriendsPage() {
   const [users, setUsers] = useState([]);
@@ -44,7 +46,7 @@ export default function FriendsPage() {
   const onSearchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsSearched(true);
     const filter = users.filter((user) =>
-      user.full_name.toLowerCase().includes(e.target.value)
+      user.full_name.toLowerCase().includes(e.target.value),
     );
     setFilteredUsers(filter);
     if (e.target.value === "") {
@@ -55,7 +57,7 @@ export default function FriendsPage() {
   const onSearchFriends = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsSearched(true);
     const filter = friends.filter((friend) =>
-      friend.full_name.toLowerCase().includes(e.target.value)
+      friend.full_name.toLowerCase().includes(e.target.value),
     );
     setFilteredFriends(filter);
     if (e.target.value === "") {
@@ -66,7 +68,7 @@ export default function FriendsPage() {
   const fetchAllUsers = async () => {
     const fetchedUsers = await getAllUsers();
     const filteredUsers = fetchedUsers.filter(
-      (user) => user.id !== localStorage.getItem("userAuth")
+      (user) => user.id !== localStorage.getItem("userAuth"),
     );
     setUsers(filteredUsers);
   };
@@ -126,64 +128,10 @@ export default function FriendsPage() {
             <Card className="flex flex-col h-full p-5">
               {friends.length > 0 ? (
                 (isSearched ? filteredFriends : friends).length ? (
-                  <div className="flex flex-col gap-5">
-                    {(isSearched ? filteredFriends : friends).map((friend) => (
-                      <Card
-                        key={nanoid()}
-                        className="flex items-center justify-between gap-5 w-full p-3"
-                      >
-                        <div className="flex gap-5 items-center">
-                          <img
-                            src={
-                              friend.avatar_url
-                                ? friend.avatar_url
-                                : "/default_profile.png"
-                            }
-                            alt=""
-                            className="w-8 h-8 rounded-full"
-                          />
-                          <span>{friend.full_name}</span>
-                        </div>
-
-                        <Dialog
-                          open={isAddFriendDialogOpen}
-                          onOpenChange={setIsAddFriendDialogOpen}
-                        >
-                          <DialogTrigger>
-                            <Button
-                              variant="destructive"
-                              className="text-sm focus-within:ring-1"
-                            >
-                              Удалить из друзей
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent>
-                            <DialogHeader>
-                              <span>
-                                Вы уверены, что хотите удалить{" "}
-                                <span className="text-red-400">
-                                  {" "}
-                                  {friend.full_name}{" "}
-                                </span>
-                                из друзей?
-                              </span>
-                            </DialogHeader>
-                            <DialogFooter>
-                              <DialogClose className="flex gap-3">
-                                <Button>Нет</Button>
-                                <Button
-                                  variant="destructive"
-                                  onClick={() => onDeleteFriend(friend.id)}
-                                >
-                                  Да
-                                </Button>
-                              </DialogClose>
-                            </DialogFooter>
-                          </DialogContent>
-                        </Dialog>
-                      </Card>
-                    ))}
-                  </div>
+                  <FriendsList
+                    friends={isSearched ? filteredFriends : friends}
+                    onDeleteFriend={onDeleteFriend}
+                  />
                 ) : (
                   <div className="flex flex-col items-center gap-3">
                     <Emoji className="text-5xl">😟</Emoji>
@@ -215,68 +163,11 @@ export default function FriendsPage() {
             <Card className="flex flex-col h-full p-5">
               {users.length ? (
                 (isSearched ? filteredFriends : friends) ? (
-                  <div className="flex flex-col gap-5">
-                    {users.map((user) => {
-                      return (
-                        <Card
-                          key={nanoid()}
-                          className="flex items-center justify-between gap-5 w-full p-3"
-                        >
-                          <div className="flex gap-5 items-center">
-                            <img
-                              src={
-                                user.avatar_url
-                                  ? user.avatar_url
-                                  : "/default_profile.png"
-                              }
-                              alt=""
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <span>{user.full_name}</span>
-                          </div>
-                          {userProfile.friends &&
-                          userProfile.friends.includes(user.id) ? (
-                            <Label className="text-sm text-blue-500">
-                              Уже в друзьях
-                            </Label>
-                          ) : (
-                            <Dialog
-                              open={isAddFriendDialogOpen}
-                              onOpenChange={setIsAddFriendDialogOpen}
-                            >
-                              <DialogTrigger>
-                                <Button className="text-sm focus-within:ring-1">
-                                  Добавить в друзья
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <span>
-                                    Вы уверены, что хотите добавить{" "}
-                                    <span className="text-blue-400">
-                                      {" "}
-                                      {user.full_name}{" "}
-                                    </span>
-                                    в друзья?
-                                  </span>
-                                </DialogHeader>
-                                <DialogFooter>
-                                  <DialogClose className="flex gap-3">
-                                    <Button variant="destructive">Нет</Button>
-                                    <Button
-                                      onClick={() => onAddFriend(user.id)}
-                                    >
-                                      Да
-                                    </Button>
-                                  </DialogClose>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          )}
-                        </Card>
-                      );
-                    })}
-                  </div>
+                  <PeopleList
+                    users={users}
+                    userProfile={userProfile}
+                    onAddFriend={onAddFriend}
+                  />
                 ) : (
                   <div className="flex flex-col items-center gap-3">
                     <Emoji className="text-5xl">😟</Emoji>
