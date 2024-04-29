@@ -2,15 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogHeader, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Tooltip,
@@ -19,25 +22,20 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  initChats,
-  getChats,
-  addChat,
-  sendMessage,
-  deleteMessage,
-  getUserFriends,
   getChat,
+  getChats,
+  getUserFriends,
+  initChats,
+  sendMessage,
 } from "@/lib/firebase";
-import { CornerDownLeft, Mic, Paperclip } from "lucide-react";
+import { ChevronDown, CornerDownLeft, Mic, Paperclip } from "lucide-react";
+import { nanoid } from "nanoid";
 import React, { useEffect, useState } from "react";
 import { ChatItem } from "react-chat-elements";
 import "react-chat-elements/dist/main.css";
+import Emoji from "react-emoji-render";
 import { BsFilterRight } from "react-icons/bs";
 import { MdAddCircleOutline } from "react-icons/md";
-import Emoji from "react-emoji-render";
-import { nanoid } from "nanoid";
-import { onSnapshot } from "@firebase/firestore";
-import { collection, query } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 
 export default function ChatsPage() {
   const [userChats, setUserChats] = useState<IUserChats[]>();
@@ -46,6 +44,7 @@ export default function ChatsPage() {
   const [currentMessage, setCurrentMessage] = useState("");
   const [openedChat, setOpenedChat] = useState({});
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
+  const [isNewChatDialog, setIsNewChatDialog] = useState(false);
 
   useEffect(() => {
     fetchedFriends();
@@ -90,7 +89,8 @@ export default function ChatsPage() {
   };
 
   const onAddNewChat = async () => {
-    await addChat("Test chat");
+    setIsNewChatDialog(true);
+    // await addChat("Test chat");
   };
 
   return (
@@ -226,6 +226,32 @@ export default function ChatsPage() {
           </div>
         )}
       </CardContent>
+      <Dialog open={isNewChatDialog} onOpenChange={setIsNewChatDialog}>
+        <DialogContent className="p-10">
+          <Label className="text-xl">Создать новый чат</Label>
+          <form className="flex flex-col gap-3" onSubmit={onAddNewChat}>
+            <Input placeholder="Название чата" />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">
+                  Выберите участников
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Участники</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <span className="text-sm">Ваши друзья</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button type="submit">Создать</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

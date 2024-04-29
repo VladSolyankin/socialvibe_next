@@ -75,6 +75,7 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetchAllUsersWithPosts();
+    console.log(userPosts)
   }, []);
 
   useEffect(() => {
