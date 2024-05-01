@@ -47,6 +47,7 @@ import { CiCirclePlus } from "react-icons/ci";
 import { FcGenericSortingAsc } from "react-icons/fc";
 import Emoji from "react-emoji-render";
 import Image from "next/image";
+import { IUserAlbum, IUserImage, IUserPhotos } from "@/types";
 
 export default function PhotosPage() {
   const [userImages, setUserImages] = useState<Array<IUserPhotos>>([]);
@@ -61,8 +62,9 @@ export default function PhotosPage() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [deleteImageIndex, setDeleteImageIndex] = useState(NaN);
   const [isAlbumOpen, setIsAlbumOpen] = useState(false);
-  const [selectedAlbum, setSelectedAlbum] = useState({});
+  const [selectedAlbum, setSelectedAlbum] = useState<IUserAlbum>({});
   const [filteredImages, setFilteredImages] = useState([]);
+  const [isAlbumDialogOpen, setIsAlbumDialogOpen] = useState(false);
   const [isSearched, setIsSearched] = useState(false);
   const { toast } = useToast();
 
@@ -172,7 +174,7 @@ export default function PhotosPage() {
   };
 
   const onAlbumDeleteConfirmed = async () => {
-    await deleteAlbum(userAlbums?.indexOf(selectedAlbum));
+    await deleteAlbum(userAlbums?.indexOf(selectedAlbum) as number);
     await fetchUserAlbums();
     setIsConfirmOpen(false);
     setIsAlbumOpen(false);
@@ -497,7 +499,7 @@ export default function PhotosPage() {
             <CardContent className="grid grid-cols-3 place-content-center gap-x-12 gap-y-16 mx-5">
               {userImages && userImages.length > 0 ? (
                 userImages && isSearched ? (
-                  filteredImages.map((photo, index) => (
+                  filteredImages.map((photo: IUserImage, index) => (
                     <div key={nanoid()} className="flex flex-col items-center">
                       <img
                         className="w-52 h-52 rounded-xl"
@@ -542,7 +544,7 @@ export default function PhotosPage() {
             <CardContent className="grid grid-cols-3 place-content-center gap-x-12 gap-y-16 grid-flow-row">
               {userAlbums && userAlbums.length > 0 ? (
                 userAlbums &&
-                userAlbums.map((album) => (
+                userAlbums.map((album: IUserAlbum) => (
                   <div
                     key={nanoid()}
                     className="relative flex flex-col items-center"
@@ -569,7 +571,7 @@ export default function PhotosPage() {
               <DialogHeader>{selectedAlbum.title}</DialogHeader>
               <div className="grid grid-cols-3">
                 {selectedAlbum.images ? (
-                  selectedAlbum.images.map((image) => {
+                  selectedAlbum.images.map((image: IUserImage) => {
                     return (
                       <div
                         className="flex flex-col items-center"
@@ -595,7 +597,7 @@ export default function PhotosPage() {
                 <Button variant="destructive" onClick={onDeleteAlbum}>
                   Удалить
                 </Button>
-                <Button onClick={() => onAddNewAlbumImage()}>
+                <Button onClick={() => setIsAlbumDialogOpen(true)}>
                   Добавить изображение
                 </Button>
                 <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
@@ -618,6 +620,58 @@ export default function PhotosPage() {
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isAlbumDialogOpen} onOpenChange={setIsAlbumDialogOpen}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>🖼️ Добавить изображение в альбом</DialogTitle>
+                <DialogDescription>
+                  Дайте название и выберите файл (или перетащите его в
+                  выделенную область):
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-4 py-4">
+                <Input
+                  id="title"
+                  placeholder="Название изображения..."
+                  className="col-span-3"
+                  onChange={(e) => setAddImageTitle(e.target.value)}
+                />
+                <div
+                  className="h-64 border-4 border-dashed rounded-xl flex flex-col items-center justify-center"
+                  {...getRootProps()}
+                >
+                  <input type="file" id="files" {...getInputProps()} />
+                  <div
+                    className={`${
+                      isFileSelected ? "hidden" : "block"
+                    } flex flex-col items-center`}
+                  >
+                    <BiLandscape className="w-12 h-12" />
+                    Выберите или перетащите изображение
+                  </div>
+                  <img
+                    src={selectedFileURL}
+                    className={`${
+                      isFileSelected ? "block" : "hidden"
+                    } w-full h-full object-fill rounded-xl p-1`}
+                    alt="Selected Image"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose>
+                  <Button
+                    type="submit"
+                    className="flex gap-2 items-center"
+                    onClick={() => onAddNewAlbumImage()}
+                  >
+                    <BiSolidSave />
+                    Сохранить
+                  </Button>
+                </DialogClose>
               </DialogFooter>
             </DialogContent>
           </Dialog>

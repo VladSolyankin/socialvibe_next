@@ -1,9 +1,11 @@
 import OpenAI from "openai";
 import { OpenAIStream, StreamingTextResponse } from "ai";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 // Create an OpenAI API client (that's edge friendly!)
 const openai = new OpenAI({
   apiKey: process.env.NEXT_PUBLIC_OPENAPI_KEY,
+  httpAgent: new HttpsProxyAgent("http://109.236.93.143:11576"),
 });
 
 export const dynamic = "force-dynamic";

@@ -23,9 +23,11 @@ import { FaUserFriends } from "react-icons/fa";
 import { onUserLogout } from "@/lib/firebase/auth";
 import { useRouter } from "next/navigation";
 import { changeUserOnline, getUser } from "@/lib/firebase";
+import { INITIAL_USER } from "@/constants";
+import { IUser } from "@/types";
 
 export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState({});
+  const [currentUser, setCurrentUser] = useState<IUser>(INITIAL_USER);
   const { toast } = useToast();
   const router = useRouter();
   const pageNavigator = (path: string) => {
@@ -94,7 +96,8 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
               className="flex flex-col justify-center items-center my-5 gap-3 p-2 relative"
               onClick={() => pageNavigator("/profile")}
             >
-              <div className="relative">
+              <Label className="text-lg cursor-pointer">Профиль</Label>
+              <div className="relative cursor-pointer">
                 <img
                   className="w-12 h-12 rounded-3xl"
                   src={currentUser?.avatar_url || "/default_profile.png"}
@@ -104,7 +107,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
                   className={`w-4 h-4 border-2 rounded-full absolute bottom-0 right-0 ${currentUser?.is_online ? "bg-green-500" : "bg-gray-600"}`}
                 ></span>
               </div>
-              <Label className="text-lg">Профиль</Label>
+              <Label className="text-lg">{currentUser?.full_name}</Label>
             </div>
             <ul className="flex flex-col items-start w-[150px]">
               <li className="flex justify-center items-center max-w-max p-2 gap-2 hover:bg-blue-400 hover:rounded-xl">

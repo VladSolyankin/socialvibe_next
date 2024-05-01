@@ -15,19 +15,23 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Toaster } from "@/components/ui/toaster";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { toast } from "@/components/ui/use-toast";
 import {
+  addGroupChat,
   getChat,
   getChats,
   getUserFriends,
   initChats,
   sendMessage,
 } from "@/lib/firebase";
+import { IUser } from "@/types";
 import { ChevronDown, CornerDownLeft, Mic, Paperclip } from "lucide-react";
 import { nanoid } from "nanoid";
 import React, { useEffect, useState } from "react";
@@ -45,6 +49,7 @@ export default function ChatsPage() {
   const [openedChat, setOpenedChat] = useState({});
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
   const [isNewChatDialog, setIsNewChatDialog] = useState(false);
+  const [selectedGroupMembers, setSelectedGroupMembers] = useState([]);
 
   useEffect(() => {
     fetchedFriends();
@@ -90,7 +95,45 @@ export default function ChatsPage() {
 
   const onAddNewChat = async () => {
     setIsNewChatDialog(true);
-    // await addChat("Test chat");
+    setSelectedGroupMembers([localStorage.getItem("userAuth")]);
+  };
+
+  const onSelectGroupMember = async (id: string) => {
+    if (!selectedGroupMembers.includes(id as never)) {
+      setSelectedGroupMembers([...selectedGroupMembers, id]);
+    } else {
+      setSelectedGroupMembers(
+        selectedGroupMembers.filter((member) => member !== id)
+      );
+    }
+  };
+
+  const onCreateGroupChat = async () => {
+    console.log("start");
+    if (selectedGroupMembers.length < 3) {
+      console.log("fail");
+      toast({
+        title: "❌ Вы должны выбрать хотя бы 2 человек!",
+        description: "Выберите их из списка своих друзей",
+      });
+      return;
+    }
+
+    const chatId = nanoid();
+    await addGroupChat({
+      id: chatId,
+      members: selectedGroupMembers as string[],
+      messages: [],
+      title: "Новый чат",
+      avatar_url: "placeholder",
+    });
+    setIsNewChatDialog(false);
+    setSelectedGroupMembers([]);
+
+    toast({
+      title: "✅ Чат создан!",
+      description: "Он отобразится в списке всех чатов",
+    });
   };
 
   return (
@@ -152,13 +195,13 @@ export default function ChatsPage() {
                         message.sender === localStorage.getItem("userAuth")
                           ? "justify-end"
                           : "justify-start"
-                      } mb-2`}
+                      } mb-2 pr-3`}
                     >
                       <div
-                        className={`min-w-[100px] relative max-w-[70%] p-4 pb-6 rounded-md ${
+                        className={`min-w-[100px] relative max-w-[70%] text-white p-4 pb-6 rounded-md break-words ${
                           message.sender === localStorage.getItem("userAuth")
-                            ? "bg-blue-600 text-white text-right"
-                            : "bg-purple-600 text-white text-left"
+                            ? "bg-blue-600 text-right"
+                            : "bg-purple-600 text-left"
                         }`}
                       >
                         {message.text}
@@ -229,7 +272,7 @@ export default function ChatsPage() {
       <Dialog open={isNewChatDialog} onOpenChange={setIsNewChatDialog}>
         <DialogContent className="p-10">
           <Label className="text-xl">Создать новый чат</Label>
-          <form className="flex flex-col gap-3" onSubmit={onAddNewChat}>
+          <div className="flex flex-col gap-3">
             <Input placeholder="Название чата" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -238,20 +281,36 @@ export default function ChatsPage() {
                   <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Участники</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <span className="text-sm">Ваши друзья</span>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
+              <DropdownMenuContent className="flex flex-col py-4">
+                <div className="grid grid-cols-5 gap-3 p-4">
+                  {userFriends.map((friend: IUser) => {
+                    return (
+                      <div
+                        key={nanoid()}
+                        className={`${selectedGroupMembers.includes(friend.id as never) ? "bg-purple-600" : "bg-background"} flex flex-col items-center justify-center p-3 rounded-xl`}
+                        onClick={() => {
+                          onSelectGroupMember(friend.id);
+                        }}
+                      >
+                        <img
+                          className="h-10 w-10 rounded-full"
+                          src={`${friend.avatar_url || "/default_profile.png"}`}
+                          alt="List of friends to add in group chat"
+                        />
+                        <span className="text-md">{friend.full_name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <Button className="mx-auto" onClick={() => onCreateGroupChat()}>
+                  Создать
+                </Button>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button type="submit">Создать</Button>
-          </form>
+          </div>
         </DialogContent>
       </Dialog>
+      <Toaster />
     </div>
   );
 }

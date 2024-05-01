@@ -1,25 +1,22 @@
-type IUser = {
-  fullName: string;
+export type IUser = {
+  id: string;
+  full_name: string;
   email: string;
-  avatarUrl: string;
-  isOnline: boolean;
+  avatar_url: string;
+  is_online: boolean;
   info: IUserInfo;
   friends: Array<string>;
   photos: {
     albums: Array<IUserAlbum>;
     userImages: Array<IUserImage>;
   };
-  postsIds: Array<string>;
+  registration_date: string;
 };
-
-type IUserChats = {};
 
 export type IUserPhotos = {
   title: string;
   url: string;
 };
-
-type IUserPosts = {};
 
 type IAuthContext = {
   user: IUser;
@@ -30,21 +27,22 @@ type IAuthContext = {
   checkUserAuth: () => Promise<boolean>;
 };
 
-type IUserAlbum = {
-  images: Array<string>;
+export type IUserAlbum = {
+  images: Array<IUserImage>;
   date: string;
   url: string;
-  previewUrl: string;
+  preview: string;
   title: string;
 };
 
-type IUserImage = {
+export type IUserImage = {
   url: string;
-  date: Date;
+  date: string;
+  title: string;
 };
 
 type IUserInfo = {
-  birthDate: string;
+  birth_date: string;
   city: string;
   phone: string;
   status: string;
@@ -55,4 +53,18 @@ export type IUserPost = {
   images: Array<string>;
   title: string;
   user_id: string;
+};
+
+export type IGroupChat = {
+  id: string;
+  title: string;
+  avatar_url: string;
+  members: Array<string>;
+  messages: Array<IMessage>;
+};
+
+export type IMessage = {
+  sender: string;
+  content: string;
+  date: string;
 };

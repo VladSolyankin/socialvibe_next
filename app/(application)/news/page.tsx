@@ -33,7 +33,7 @@ import {
   getUser,
   getUserPosts,
 } from "@/lib/firebase";
-import { IUserPost } from "@/types";
+import { IUser, IUserPost } from "@/types";
 import { PaperPlaneIcon } from "@radix-ui/react-icons";
 import { nanoid } from "nanoid";
 import Image from "next/image";
@@ -46,6 +46,7 @@ import { FcAddImage, FcLike } from "react-icons/fc";
 import { onSnapshot } from "@firebase/firestore";
 import { collection, query } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { INITIAL_USER } from "@/constants";
 
 export default function NewsPage() {
   const storageUserId =
@@ -54,7 +55,7 @@ export default function NewsPage() {
   const [userPostInfo, setUserPostInfo] = useState({});
   const [profiles, setProfiles] = useState([]);
   const [isPostLiked, setIsPostLiked] = useState(false);
-  const [currentUser, setCurrentUser] = useState({});
+  const [currentUser, setCurrentUser] = useState<IUser>(INITIAL_USER);
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostImages, setNewPostImages] = useState(Array<string>);
   const [currentPostComment, setCurrentPostComment] = useState("");
@@ -75,7 +76,7 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetchAllUsersWithPosts();
-    console.log(userPosts)
+    console.log(userPosts);
   }, []);
 
   useEffect(() => {

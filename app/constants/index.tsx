@@ -1,15 +1,21 @@
 export const INITIAL_USER = {
-  fullName: '',
-  email: '',
-  avatarUrl: '',
-  isOnline: false,
-  info: { birthDate: '', city: '', phone: '', status: '' },
+  id: "",
+  full_name: "",
+  email: "",
+  avatar_url: "",
+  is_online: false,
+  info: {
+    birth_date: "",
+    city: "",
+    phone: "",
+    status: "",
+  },
   friends: [],
   photos: {
     albums: [],
     userImages: [],
   },
-  postsIds: [],
+  registration_date: "",
 };
 
 export const AUTH_INITIAL_STATE = {

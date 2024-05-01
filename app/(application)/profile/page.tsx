@@ -1,42 +1,42 @@
 "use client";
+import { Loader } from "@/components/shared/Loader";
 import { Button } from "@/components/ui/button";
-import { DialogHeader } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Toaster } from "@/components/ui/toaster";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { toast } from "@/components/ui/use-toast";
+import { INITIAL_USER } from "@/constants";
 import {
   changeUserImage,
   changeUserStatus,
+  getFriendProfile,
   getUser,
   getUserFriends,
-  getUsersProfileInfo,
 } from "@/lib/firebase";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useCallback, useEffect, useState } from "react";
-import Emoji from "react-emoji-render";
-import { FileWithPath, useDropzone } from "react-dropzone";
-import { BiLandscape } from "react-icons/bi";
-import { Input } from "@/components/ui/input";
+import { IUser } from "@/types";
 import { nanoid } from "ai";
 import Image from "next/image";
-import { Separator } from "@/components/ui/separator";
+import { useCallback, useEffect, useState } from "react";
+import { FileWithPath, useDropzone } from "react-dropzone";
+import Emoji from "react-emoji-render";
+import { BiLandscape } from "react-icons/bi";
 import { IoPencilSharp } from "react-icons/io5";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Loader } from "@/components/shared/Loader";
-import { toast } from "@/components/ui/use-toast";
-import { Toaster } from "@/components/ui/toaster";
 
 export default function ProfilePage() {
-  const [currentUser, setCurrentUser] = useState({});
+  const [currentUser, setCurrentUser] = useState<IUser>(INITIAL_USER);
   const [isFileSelected, setIsFileSelected] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FileWithPath>();
   const [selectedFileURL, setSelectedFileURL] = useState<string>();
@@ -45,6 +45,7 @@ export default function ProfilePage() {
   const [isEditStatusOpen, setIsEditStatusOpen] = useState(false);
   const [userFriends, setUserFriends] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isUserProfile, setIsUserProfile] = useState(true);
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -59,7 +60,13 @@ export default function ProfilePage() {
 
   const fetchUserProfile = async () => {
     const user = await getUser();
-    setCurrentUser(user);
+    setCurrentUser(() => user as IUser);
+  };
+
+  const fetchFriendProfile = async (id: string) => {
+    setIsUserProfile(false);
+    const user = await getFriendProfile(id);
+    setCurrentUser(() => user as IUser);
   };
 
   const fetchUserFriends = async () => {
@@ -88,7 +95,7 @@ export default function ProfilePage() {
   });
 
   const onHandleSave = async () => {
-    changeUserImage(selectedFileURL);
+    changeUserImage(selectedFileURL as string);
     await fetchUserProfile();
     setIsProfileChangeOpen(false);
     setIsFileSelected(false);
@@ -122,7 +129,13 @@ export default function ProfilePage() {
         <div>
           <div className="flex flex-col items-center gap-3">
             <Emoji className="text-5xl">👀</Emoji>
-            <Label className="text-xl">Ваш профиль</Label>
+            {isUserProfile ? (
+              <Label className="text-xl">Ваш профиль</Label>
+            ) : (
+              <Label className="text-xl">
+                Профиль {currentUser?.full_name}
+              </Label>
+            )}
           </div>
           <div className="max-w-[70vw] flex gap-5 p-5">
             <div className="flex flex-col gap-5 mb-4">
@@ -134,7 +147,7 @@ export default function ProfilePage() {
                         <TooltipTrigger>
                           <div className="relative">
                             <img
-                              src={`${currentUser?.avatar_url}`}
+                              src={`${currentUser?.avatar_url || "/default_profile.png"}`}
                               className="rounded-full border-2 h-24 w-24 object-cover hover:brightness-75 transition duration-150 ease-in-out"
                               alt=""
                             />
@@ -148,16 +161,18 @@ export default function ProfilePage() {
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
-                          <Button
-                            variant={"secondary"}
-                            onClick={() => {
-                              setIsFileSelected(false);
-                              setSelectedFileURL("");
-                              setIsProfileChangeOpen(true);
-                            }}
-                          >
-                            Изменить фотографию
-                          </Button>
+                          {isUserProfile && (
+                            <Button
+                              variant={"secondary"}
+                              onClick={() => {
+                                setIsFileSelected(false);
+                                setSelectedFileURL("");
+                                setIsProfileChangeOpen(true);
+                              }}
+                            >
+                              Изменить фотографию
+                            </Button>
+                          )}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -181,13 +196,15 @@ export default function ProfilePage() {
                 <div className="space-y-4">
                   <div className="flex flex-col gap-3 items-center justify-center relative">
                     <Label className="text-xl">Статус</Label>
-                    <Button
-                      variant={"ghost"}
-                      className="focus:outline-none absolute right-0 top-0"
-                      onClick={() => setIsEditStatusOpen(true)}
-                    >
-                      <IoPencilSharp className="h-5 w-5 text-gray-400 hover:text-primary-foreground" />
-                    </Button>
+                    {isUserProfile && (
+                      <Button
+                        variant={"ghost"}
+                        className="focus:outline-none absolute right-0 top-0"
+                        onClick={() => setIsEditStatusOpen(true)}
+                      >
+                        <IoPencilSharp className="h-5 w-5 text-gray-400 hover:text-primary-foreground" />
+                      </Button>
+                    )}
                     <Label className="text-sm text-gray-400">
                       {currentUser.info && currentUser?.info.status}
                     </Label>
@@ -209,12 +226,14 @@ export default function ProfilePage() {
                     Я отличный программист, который никогда не задерживается с
                     дедлайнами.
                   </p>
-                  <Button
-                    className="w-full"
-                    onClick={() => setIsEditOpen(true)}
-                  >
-                    Изменить информацию
-                  </Button>
+                  {isUserProfile && (
+                    <Button
+                      className="w-full"
+                      onClick={() => setIsEditOpen(true)}
+                    >
+                      Изменить информацию
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-3 border-2 mb-4 p-5 rounded-xl">
@@ -223,7 +242,7 @@ export default function ProfilePage() {
                   Здесь будут твои друзья, которые тоже используют эту платформу
                 </p>
                 <div className="flex -space-x-3 hover:gap-5 overflow-hidden">
-                  {userFriends.map((friend) => {
+                  {userFriends.map((friend: IUser) => {
                     return (
                       <div
                         className="flex -space-x-1 transition duration-300 overflow-hidden"
@@ -237,17 +256,12 @@ export default function ProfilePage() {
                           height={10}
                           quality={100}
                           unoptimized={true}
+                          onClick={() => fetchFriendProfile(friend.id)}
                         />
                       </div>
                     );
                   })}
                 </div>
-              </div>
-              <div className="border-2 mb-4 p-5 rounded-xl">
-                <h2 className="text-2xl font-bold">Посты</h2>
-                <p className="text-gray-400">
-                  Здесь будут посты, которые ты публикуешь
-                </p>
               </div>
             </div>
           </div>
