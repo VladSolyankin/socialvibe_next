@@ -184,6 +184,23 @@ export const getUserFriends = async () => {
   return friendsData;
 };
 
+export const getUserFriendsById = async (id: string) => {
+  const userRef = doc(db, `users/${id}`);
+  const userDoc = await getDoc(userRef);
+
+  const friendsIds = userDoc.data().friends;
+
+  const friendsPromises = friendsIds.map((id) =>
+    getDoc(doc(db, `/users/${id}`))
+  );
+
+  const friendsData = (await Promise.all(friendsPromises))
+    .map((doc) => doc.data())
+    .filter((data) => data);
+
+  return friendsData;
+};
+
 // Новости
 
 export const getUserPosts = async () => {

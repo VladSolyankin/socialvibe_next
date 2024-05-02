@@ -1,8 +1,7 @@
 "use client";
 
-import "./globals.css";
 import { ThemeProvider } from "./components/theme-provider";
-import { DesktopLayout } from "./components/layouts/DesktopLayout";
+import "./globals.css";
 
 export default function RootLayout({
   children,

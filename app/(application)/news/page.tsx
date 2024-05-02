@@ -67,19 +67,10 @@ export default function NewsPage() {
     setTimeout(() => {
       setIsLoaded(true);
     }, 3000);
-  }, []);
 
-  useEffect(() => {
-    getPostsFromFirestore();
     fetchUser();
-  }, []);
-
-  useEffect(() => {
+    getPostsFromFirestore();
     fetchAllUsersWithPosts();
-    console.log(userPosts);
-  }, []);
-
-  useEffect(() => {
     changeUserOnline(true);
   }, []);
 

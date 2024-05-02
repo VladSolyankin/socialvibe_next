@@ -35,7 +35,7 @@ import {
 export default function MusicPage() {
   const [playlists, setPlaylists] = useState({});
   const [playlistTracks, setPlaylistTracks] = useState([]);
-  const [popularTracks, setPopularTracks] = useState({});
+  const [popularTracks, setPopularTracks] = useState([]);
   const [isPlaylistOpen, setIsPlaylistOpen] = useState(false);
   const [currentPlaylist, setCurrentPlaylist] = useState({});
   const [isPlaying, setIsPlaying] = useState(false);
@@ -43,9 +43,10 @@ export default function MusicPage() {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTrack, setCurrentTrack] = useState({});
   const audioRef = useRef<HTMLAudioElement | undefined>(
-    typeof Audio !== "undefined" ? new Audio("") : undefined,
+    typeof Audio !== "undefined" ? new Audio("") : undefined
   );
 
+  console.log(popularTracks);
   useEffect(() => {
     fetchPlaylists();
     fetchPopularTracks();
@@ -57,15 +58,16 @@ export default function MusicPage() {
 
   const fetchPlaylistTracks = async (index: number) => {
     const playlistTracks = await getPlaylistTracks(
-      playlists.items[index].tracks.href,
+      playlists.items[index].tracks.href
     );
     await setPlaylistTracks(playlistTracks);
     console.log(playlistTracks);
   };
 
   const fetchPopularTracks = async () => {
-    const tracks = await getPopularTracks();
-    setPopularTracks(tracks);
+    await getPopularTracks()
+      .then((res) => res.tracks.items.filter((item) => item.preview_url))
+      .then((data) => setPopularTracks(data));
   };
 
   const onPlaylistOpen = (playlist, index) => {
@@ -100,6 +102,8 @@ export default function MusicPage() {
     setCurrentTrackIndex(0);
   };
 
+  console.log(currentTrack);
+
   return (
     <div className="min-w-[700px] min-h-screen mx-3 max-w-xl">
       <div className="flex flex-col items-center justify-center gap-3 py-5">
@@ -124,7 +128,7 @@ export default function MusicPage() {
             <Label>Плейлисты</Label>
             <Carousel className="w-full">
               <CarouselContent>
-                {playlists.items ? (
+                {playlists && playlists.items ? (
                   playlists.items.map((playlist, index) => (
                     <CarouselItem
                       key={nanoid()}
@@ -154,7 +158,11 @@ export default function MusicPage() {
                     </CarouselItem>
                   ))
                 ) : (
-                  <Skeleton className="w-full h-52 basis-1/3 bg-slate-800" />
+                  <>
+                    <Skeleton className="h-52 basis-1/3 bg-slate-800 mr-1" />
+                    <Skeleton className="h-52 basis-1/3 bg-slate-800 mr-1" />
+                    <Skeleton className="h-52 basis-1/3 bg-slate-800 mr-1" />
+                  </>
                 )}
               </CarouselContent>
             </Carousel>
@@ -162,39 +170,40 @@ export default function MusicPage() {
             <Label>Популярные треки</Label>
             <Carousel className="w-full">
               <CarouselContent>
-                {popularTracks.tracks ? (
-                  popularTracks.tracks.items.map((track, i) => (
+                {popularTracks ? (
+                  Array.from({
+                    length: Math.ceil(popularTracks.length / 3),
+                  }).map((_, i) => (
                     <CarouselItem
                       key={nanoid()}
                       className="flex flex-col items-center gap-2"
                     >
                       <Card className="w-full">
-                        {popularTracks.tracks.items
-                          .slice(i, i + 3)
-                          .map((track) => {
-                            return (
-                              <CardContent
-                                key={nanoid()}
-                                className="flex gap-x-2 items-center text-center hover:bg-slate-800 hover:rounded-xl p-2"
-                              >
-                                <div className="flex basis-1/6">
-                                  <img
-                                    src={`${track.album.images[0].url}`}
-                                    alt=""
-                                    className="w-12 h-12 object-cover rounded-xl"
-                                  />
-                                </div>
-                                <span className="break-words basis-3/6">
-                                  {track.name}
-                                </span>
-                                <span className="text-gray-400 basis-2/6">
-                                  {track.artists
-                                    .map((artist) => artist.name)
-                                    .join(", ")}
-                                </span>
-                              </CardContent>
-                            );
-                          })}
+                        {popularTracks.slice(i * 3, i * 3 + 3).map((track) => {
+                          return (
+                            <CardContent
+                              key={nanoid()}
+                              className="flex gap-x-2 items-center text-center hover:bg-slate-800 hover:rounded-xl p-2"
+                              onClick={() => onTrackPlay(track)}
+                            >
+                              <div className="flex basis-1/6">
+                                <img
+                                  src={`${track.album.images[0].url}`}
+                                  alt=""
+                                  className="w-12 h-12 object-cover rounded-xl"
+                                />
+                              </div>
+                              <span className="break-words basis-3/6">
+                                {track.name}
+                              </span>
+                              <span className="text-gray-400 basis-2/6">
+                                {track.artists
+                                  .map((artist) => artist.name)
+                                  .join(", ")}
+                              </span>
+                            </CardContent>
+                          );
+                        })}
                       </Card>
                     </CarouselItem>
                   ))
@@ -247,47 +256,30 @@ export default function MusicPage() {
           </Dialog>
           {isPlayerVisible ? (
             <div className="fixed flex justify-evenly items-center text-center inset-x-0 bottom-0 h-20 w-full bg-black rounded-b-lg shadow-md overflow-hidden z-50">
-              <audio
-                ref={audioRef}
-                src={`${playlistTracks[currentTrackIndex]?.track.preview_url}`}
-                onEnded={() => handleNextTrack()}
-              ></audio>
               <img
-                src={`${playlistTracks[currentTrackIndex]?.track.album.images[0].url}`}
+                src={`${currentTrack?.album.images[0].url}`}
                 alt=""
                 className="w-16 h-16 object-cover rounded-xl"
               />
               <div className="flex flex-col justify-center h-full p-4 space-y-2">
-                <span className="break-words">
-                  {playlistTracks[currentTrackIndex]?.track.name}
-                </span>
+                <span className="break-words">{currentTrack?.name}</span>
                 <span className="text-gray-500">
-                  {playlistTracks[currentTrackIndex]?.track.artists
+                  {currentTrack?.artists
                     .map((artist) => artist.name)
                     .join(", ")}
                 </span>
               </div>
-              <audio
-                ref={audioRef}
-                src={`${currentTrack?.preview_url || ""}`}
-              ></audio>
-              <div className="flex justify-center space-x-4">
+              <div className="flex justify-center space-x-4 relative">
                 <button
                   onClick={() => handlePrevTrack()}
                   className="p-2 bg-slate-900 rounded-full border-2 border-blue-300"
                 >
                   <IoIosSkipBackward className="text-white" />
                 </button>
-                <button
-                  onClick={() => handlePlayPause()}
-                  className="p-2 bg-blue-500 rounded-full"
-                >
-                  {isPlaying ? (
-                    <IoMdPause className="text-white" />
-                  ) : (
-                    <IoMdPlay className="text-white" />
-                  )}
-                </button>
+                <audio
+                  src={`${currentTrack?.preview_url || ""}`}
+                  controls
+                ></audio>
                 <button
                   onClick={() => handleNextTrack()}
                   className="p-2 rounded-full border-2 border-blue-300"
@@ -295,7 +287,6 @@ export default function MusicPage() {
                   <IoIosSkipForward className="text-white" />
                 </button>
 
-                {/* Кнопка закрытия плеера */}
                 <button
                   onClick={() => handleOnClose()}
                   className="p-2 rounded-full border-2 border-blue-300 hover:bg-red-600"
@@ -303,6 +294,7 @@ export default function MusicPage() {
                   <IoMdClose className="text-white" />
                 </button>
               </div>
+              <div className="absolute top-0 left-0 w-full h-1 bg-purple-500"></div>
             </div>
           ) : (
             <></>

@@ -32,22 +32,21 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   addAlbumImage,
   addUserAlbum,
-  addUserAlbumImage,
   addUserImage,
   deleteAlbum,
   deleteUserImage,
   getUserAlbums,
   getUserImages,
 } from "@/lib/firebase";
+import { IUserAlbum, IUserImage, IUserPhotos } from "@/types";
 import { nanoid } from "nanoid";
-import React, { ReactNode, useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { FileWithPath, useDropzone } from "react-dropzone";
+import Emoji from "react-emoji-render";
 import { BiLandscape, BiSolidSave } from "react-icons/bi";
 import { CiCirclePlus } from "react-icons/ci";
 import { FcGenericSortingAsc } from "react-icons/fc";
-import Emoji from "react-emoji-render";
-import Image from "next/image";
-import { IUserAlbum, IUserImage, IUserPhotos } from "@/types";
+import Viewer from "react-viewer";
 
 export default function PhotosPage() {
   const [userImages, setUserImages] = useState<Array<IUserPhotos>>([]);
@@ -66,6 +65,7 @@ export default function PhotosPage() {
   const [filteredImages, setFilteredImages] = useState([]);
   const [isAlbumDialogOpen, setIsAlbumDialogOpen] = useState(false);
   const [isSearched, setIsSearched] = useState(false);
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -505,7 +505,13 @@ export default function PhotosPage() {
                         className="w-52 h-52 rounded-xl"
                         src={photo.url}
                         alt="User photo"
-                        onClick={() => onShowImageDialog(photo.url, index)}
+                        onClick={() => setIsViewerVisible(true)}
+                      />
+                      <Viewer
+                        className="w-40 h-40 rounded-xl"
+                        visible={isViewerVisible}
+                        onClose={() => setIsViewerVisible(false)}
+                        images={[{ src: photo.url }]}
                       />
                       <span>{photo.title}</span>
                     </div>
@@ -517,7 +523,13 @@ export default function PhotosPage() {
                         className="w-52 h-52 rounded-xl"
                         src={photo.url}
                         alt="User photo"
-                        onClick={() => onShowImageDialog(photo.url, index)}
+                        onClick={() => setIsViewerVisible(true)}
+                      />
+                      <Viewer
+                        className="w-40 h-40 rounded-xl"
+                        visible={isViewerVisible}
+                        onClose={() => setIsViewerVisible(false)}
+                        images={[{ src: photo.url }]}
                       />
                       <span>{photo.title}</span>
                     </div>
@@ -553,7 +565,10 @@ export default function PhotosPage() {
                       className="w-52 h-52 rounded-xl z-30"
                       src={album.preview}
                       alt="User photo"
-                      onClick={() => onSelectUserAlbum(album)}
+                      onClick={() => {
+                        onSelectUserAlbum(album);
+                        setIsViewerVisible(false);
+                      }}
                     />
                     <span className="z-10">{album.title}</span>
                   </div>
@@ -567,9 +582,9 @@ export default function PhotosPage() {
             </CardContent>
           </Card>
           <Dialog open={isAlbumOpen} onOpenChange={setIsAlbumOpen}>
-            <DialogContent>
+            <DialogContent className="w-[40vw]">
               <DialogHeader>{selectedAlbum.title}</DialogHeader>
-              <div className="grid grid-cols-3">
+              <div className="grid grid-cols-3 gap-5">
                 {selectedAlbum.images ? (
                   selectedAlbum.images.map((image: IUserImage) => {
                     return (
@@ -578,9 +593,14 @@ export default function PhotosPage() {
                         key={nanoid()}
                       >
                         <img
-                          className="w-40 h-40 rounded-xl"
+                          className="w-52 h-52 rounded-xl"
                           src={image.url}
                           alt="User photo"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsViewerVisible(true);
+                            setIsAlbumOpen(false);
+                          }}
                         />
                         <span>{image.title}</span>
                       </div>
@@ -675,6 +695,17 @@ export default function PhotosPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          {selectedAlbum.images && (
+            <Viewer
+              className="w-40 h-40 rounded-xl"
+              visible={isViewerVisible}
+              onClose={() => setIsViewerVisible(false)}
+              images={selectedAlbum.images.map((image) => ({
+                src: image.url,
+              }))}
+              zIndex={1000}
+            />
+          )}
         </TabsContent>
       </Tabs>
     </div>

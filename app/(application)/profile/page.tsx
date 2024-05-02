@@ -25,6 +25,7 @@ import {
   getFriendProfile,
   getUser,
   getUserFriends,
+  getUserFriendsById,
 } from "@/lib/firebase";
 import { IUser } from "@/types";
 import { nanoid } from "ai";
@@ -32,7 +33,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { FileWithPath, useDropzone } from "react-dropzone";
 import Emoji from "react-emoji-render";
-import { BiLandscape } from "react-icons/bi";
+import { BiArrowBack, BiLandscape } from "react-icons/bi";
 import { IoPencilSharp } from "react-icons/io5";
 
 export default function ProfilePage() {
@@ -44,8 +45,10 @@ export default function ProfilePage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isEditStatusOpen, setIsEditStatusOpen] = useState(false);
   const [userFriends, setUserFriends] = useState([]);
+  const [profileFriends, setProfileFriends] = useState([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUserProfile, setIsUserProfile] = useState(true);
+  const [isViewerVisible, setIsViewerVisible] = useState(false);
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -127,14 +130,27 @@ export default function ProfilePage() {
     <div className="flex flex-col items-center p-3">
       {isLoaded ? (
         <div>
-          <div className="flex flex-col items-center gap-3">
+          <div className="relative flex flex-col items-center gap-3">
             <Emoji className="text-5xl">👀</Emoji>
             {isUserProfile ? (
               <Label className="text-xl">Ваш профиль</Label>
             ) : (
-              <Label className="text-xl">
-                Профиль {currentUser?.full_name}
-              </Label>
+              <div className="flex items-center">
+                <Label className="text-xl">
+                  Профиль {currentUser?.full_name}
+                </Label>
+                <Button
+                  variant="link"
+                  className="absolute left-0 flex gap-1"
+                  onClick={() => {
+                    setIsUserProfile(true);
+                    fetchUserProfile();
+                  }}
+                >
+                  <BiArrowBack className="text-lg" />
+                  Мой профиль
+                </Button>
+              </div>
             )}
           </div>
           <div className="max-w-[70vw] flex gap-5 p-5">
@@ -160,8 +176,8 @@ export default function ProfilePage() {
                             ></div>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          {isUserProfile && (
+                        {isUserProfile && (
+                          <TooltipContent>
                             <Button
                               variant={"secondary"}
                               onClick={() => {
@@ -172,8 +188,8 @@ export default function ProfilePage() {
                             >
                               Изменить фотографию
                             </Button>
-                          )}
-                        </TooltipContent>
+                          </TooltipContent>
+                        )}
                       </Tooltip>
                     </TooltipProvider>
                   </div>
@@ -221,11 +237,6 @@ export default function ProfilePage() {
                   <p>
                     <b className="mr-2">Статус:</b> Работаю
                   </p>
-                  <p className="text-gray-400">О себе:</p>
-                  <p className="text-gray-600">
-                    Я отличный программист, который никогда не задерживается с
-                    дедлайнами.
-                  </p>
                   {isUserProfile && (
                     <Button
                       className="w-full"
@@ -241,26 +252,58 @@ export default function ProfilePage() {
                 <p className="text-gray-400">
                   Здесь будут твои друзья, которые тоже используют эту платформу
                 </p>
-                <div className="flex -space-x-3 hover:gap-5 overflow-hidden">
-                  {userFriends.map((friend: IUser) => {
-                    return (
-                      <div
-                        className="flex -space-x-1 transition duration-300 overflow-hidden"
-                        key={nanoid()}
-                      >
-                        <Image
-                          className="h-10 w-10 rounded-3xl"
-                          src={`${friend.avatar_url || "/default_profile.png"}`}
-                          alt="Friends profile images"
-                          width={10}
-                          height={10}
-                          quality={100}
-                          unoptimized={true}
-                          onClick={() => fetchFriendProfile(friend.id)}
-                        />
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-3 overflow-hidden">
+                  {isUserProfile
+                    ? userFriends.map((friend: IUser) => {
+                        return (
+                          <div className="overflow-hidden" key={nanoid()}>
+                            <div className="flex flex-col items-center justify-center gap-3">
+                              <Image
+                                className="h-10 w-10 rounded-3xl"
+                                src={`${friend.avatar_url || "/default_profile.png"}`}
+                                alt="Friends profile images"
+                                width={10}
+                                height={10}
+                                quality={100}
+                                unoptimized={true}
+                                onClick={async () => {
+                                  fetchFriendProfile(friend.id);
+                                  const friends = await getUserFriendsById(
+                                    friend.id
+                                  );
+                                  setProfileFriends(friends);
+                                }}
+                              />
+                              <Label>{friend.full_name}</Label>
+                            </div>
+                          </div>
+                        );
+                      })
+                    : profileFriends.map((friend: IUser) => {
+                        return (
+                          <div className="overflow-hidden" key={nanoid()}>
+                            <div className="flex flex-col items-center justify-center gap-3">
+                              <Image
+                                className="h-10 w-10 rounded-3xl"
+                                src={`${friend.avatar_url || "/default_profile.png"}`}
+                                alt="Friends profile images"
+                                width={10}
+                                height={10}
+                                quality={100}
+                                unoptimized={true}
+                                onClick={async () => {
+                                  fetchFriendProfile(friend.id);
+                                  const friends = await getUserFriendsById(
+                                    friend.id
+                                  );
+                                  setProfileFriends(friends);
+                                }}
+                              />
+                              <Label>{friend.full_name}</Label>
+                            </div>
+                          </div>
+                        );
+                      })}
                 </div>
               </div>
             </div>

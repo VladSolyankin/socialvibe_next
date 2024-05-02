@@ -71,6 +71,11 @@ export default function Chat() {
   };
 
   const renderCodeBlocks = (text: string) => {
+    const endOfText = text.indexOf("<|endoftext|>");
+    if (endOfText !== -1) text = text.slice(0, endOfText);
+
+    const endOfAssistantText = text.indexOf("<|assistant|>");
+    if (endOfText !== -1) text = text.slice(0, endOfAssistantText);
     return text.split(/```([\s\S]+?)```|`([\s\S]+?)`/g).map((part, index) => {
       if (index % 3 === 0) {
         return part;
