@@ -12,7 +12,7 @@ async function getAllArtists(query) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
     const data = await response.json();
     return data.artists;
@@ -31,7 +31,7 @@ async function getTracks(query) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
     const data = await response.json();
     return data.tracks;
@@ -50,7 +50,7 @@ async function getSearchedTracks(query, offset) {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
     const data = await response.json();
     return data.tracks;
@@ -75,36 +75,70 @@ async function getTracksByIds(ids) {
     throw error;
   }
 }
-// TODO: type=track
+
 async function getPlaylists(query) {
   try {
     const token = await getSpotifyToken();
     const response = await fetch(
-      `${BASE_URL}/search?q=${query}&type=track&limit=50`,
+      `${BASE_URL}/search?q=${query}&type=playlist&limit=50`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      },
+      }
     );
-    const data = await response.json().then((res) => res.playlists);
-    return data;
+    const data = await response.json();
+    return data.playlists;
   } catch (error) {
     console.error("Error getting playlists:", error.message);
     throw error;
   }
 }
 
-async function getPlaylistTracks(playlistUrl) {
+async function getPlaylistTracks() {
+  const popularRussianArtists = [
+    "Сметана Band",
+    "три дня дождя",
+    "Порнофильмы",
+    "Тараканы!",
+    "Станционный смотритель",
+    "Время",
+    "Grad!ent",
+    "Kotone",
+    "Panda",
+    "Диктофон",
+    "Onsa Media",
+    "Jackie-O",
+    "Sati Akura",
+    "Спасибо",
+    "Dmitry Taranov",
+    "РОБОКОТ",
+    "СЛОТ",
+    "Inside",
+  ];
   try {
     const token = await getSpotifyToken();
-    const response = await fetch(`${playlistUrl}&market=US`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const data = await response.json();
-    return data.items;
+    const playlistTracks = await Promise.all(
+      popularRussianArtists.map(async (artist) => {
+        const token = await getSpotifyToken();
+        const response = await fetch(
+          `${BASE_URL}/search?q=${artist}&type=track&`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const { tracks } = await response.json();
+        return tracks.items;
+      })
+    );
+
+    const flatenedTracks = playlistTracks.flat();
+
+    const randomNumber = Math.floor(Math.random() * flatenedTracks.length);
+
+    return playlistTracks.flat().slice(0, randomNumber);
   } catch (error) {
     console.error("Error getting playlist tracks:", error.message);
     throw error;
@@ -113,17 +147,33 @@ async function getPlaylistTracks(playlistUrl) {
 
 async function getPopularTracks() {
   try {
-    const token = await getSpotifyToken();
-    const response = await fetch(
-      `${BASE_URL}/search?q=${"eminem billie elish ariana grande justin bieber rap hip hop%20year=2024"}&type=track&`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
+    const popularArtists = [
+      "ariana grande",
+      "eminem",
+      "billie elish",
+      "justin bieber",
+      "rap",
+      "hip hop",
+      "lucas graham",
+      "marshmellow",
+    ];
+
+    const popularTracks = await Promise.all(
+      popularArtists.map(async (artist) => {
+        const token = await getSpotifyToken();
+        const response = await fetch(
+          `${BASE_URL}/search?q=${artist}&type=track&`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const { tracks } = await response.json();
+        return tracks.items;
+      })
     );
-    const data = await response.json();
-    return data;
+    return popularTracks.flat();
   } catch (error) {
     console.error("Error getting popular tracks:", error.message);
     throw error;

@@ -59,7 +59,7 @@ export type IGroupChat = {
   id: string;
   title: string;
   avatar_url: string;
-  members: Array<string>;
+  users: Array<string>;
   messages: Array<IMessage>;
 };
 

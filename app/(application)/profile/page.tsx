@@ -158,7 +158,7 @@ export default function ProfilePage() {
               <div className="flex flex-col justify-center items-center border-2 p-5 gap-3 rounded-xl text-center">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <TooltipProvider delayDuration={100}>
+                    <TooltipProvider delayDuration={0}>
                       <Tooltip>
                         <TooltipTrigger>
                           <div className="relative">

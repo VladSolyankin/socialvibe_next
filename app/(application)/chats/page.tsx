@@ -2,26 +2,18 @@
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogHeader, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Toaster } from "@/components/ui/toaster";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { toast } from "@/components/ui/use-toast";
 import {
   addGroupChat,
@@ -32,9 +24,15 @@ import {
   sendMessage,
 } from "@/lib/firebase";
 import { IUser } from "@/types";
-import { ChevronDown, CornerDownLeft, Mic, Paperclip } from "lucide-react";
+import {
+  ChevronDown,
+  CornerDownLeft,
+  File,
+  Paperclip,
+  Video,
+} from "lucide-react";
 import { nanoid } from "nanoid";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChatItem } from "react-chat-elements";
 import "react-chat-elements/dist/main.css";
 import Emoji from "react-emoji-render";
@@ -42,7 +40,7 @@ import { BsFilterRight } from "react-icons/bs";
 import { MdAddCircleOutline } from "react-icons/md";
 
 export default function ChatsPage() {
-  const [userChats, setUserChats] = useState<IUserChats[]>();
+  const [userChats, setUserChats] = useState([]);
   const [userFriends, setUserFriends] = useState([]);
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
@@ -50,6 +48,9 @@ export default function ChatsPage() {
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
   const [isNewChatDialog, setIsNewChatDialog] = useState(false);
   const [selectedGroupMembers, setSelectedGroupMembers] = useState([]);
+  const [groupChatTitle, setGroupChatTitle] = useState("");
+  const [isChatMediaOpen, setIsChatMediaOpen] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchedFriends();
@@ -58,6 +59,8 @@ export default function ChatsPage() {
   useEffect(() => {
     initializeChats();
   }, []);
+
+  useEffect(() => scrollToBottom(), [userChats]);
 
   const initializeChats = async () => {
     await initChats();
@@ -73,20 +76,26 @@ export default function ChatsPage() {
   const onChatSelect = async (index: number) => {
     setIsChatVisible(true);
     setCurrentChatIndex(index);
-    //const chatMessages = await getChatMessages(index);
   };
 
   const onChatSearch = async () => {};
 
   const onMessageSend = async () => {
+    if (currentMessage.length === 0) return;
     setCurrentMessage("");
-    await sendMessage(userChats[currentChatIndex].id, currentMessage);
-    const chat = await getChat(userChats[currentChatIndex].id);
-    setUserChats(() => {
-      const newChats = [...userChats];
-      newChats[currentChatIndex] = chat;
-      return newChats;
-    });
+    console.log(userChats[currentChatIndex], userChats[currentChatIndex].id);
+    if (userChats[currentChatIndex]) {
+      await sendMessage(userChats[currentChatIndex].id, currentMessage);
+      await getChat(userChats[currentChatIndex].id).then((res) => {
+        if (res && res.users) {
+          setUserChats(() => {
+            const newChats = [...userChats];
+            newChats[currentChatIndex] = res;
+            return newChats;
+          });
+        }
+      });
+    }
   };
 
   const onMessageChanged = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -109,7 +118,6 @@ export default function ChatsPage() {
   };
 
   const onCreateGroupChat = async () => {
-    console.log("start");
     if (selectedGroupMembers.length < 3) {
       console.log("fail");
       toast({
@@ -119,10 +127,18 @@ export default function ChatsPage() {
       return;
     }
 
+    if (groupChatTitle.length < 1) {
+      toast({
+        title: "❌ Название чата слишком короткое!",
+        description: "Придумайте что-нибудь",
+      });
+      return;
+    }
+
     const chatId = nanoid();
     await addGroupChat({
       id: chatId,
-      members: selectedGroupMembers as string[],
+      users: selectedGroupMembers as string[],
       messages: [],
       title: "Новый чат",
       avatar_url: "placeholder",
@@ -136,6 +152,10 @@ export default function ChatsPage() {
     });
   };
 
+  const scrollToBottom = () => {
+    if (chatScrollRef.current)
+      chatScrollRef.current.scrollTop = chatScrollRef.current?.scrollHeight;
+  };
   return (
     <div className="mt-4 h-screen max-w-5xl">
       <CardContent className="h-full grid grid-cols-3 gap-6">
@@ -173,9 +193,18 @@ export default function ChatsPage() {
                       avatar={chat.preview ?? "/default_profile.png"}
                       alt={"User message"}
                       title={chat.title}
-                      subtitle={"Напишите сообщение..."}
-                      unread={0}
+                      subtitle={
+                        userChats[index].messages[
+                          userChats[index].messages.length - 1
+                        ]?.text ?? "Напишите сообщение..."
+                      }
+                      unread={1}
                       onClick={() => onChatSelect(index)}
+                      dateString={
+                        userChats[index].messages[
+                          userChats[index].messages.length - 1
+                        ]?.date
+                      }
                     />
                   </div>
                 );
@@ -185,7 +214,10 @@ export default function ChatsPage() {
 
         {isChatVisible ? (
           <div className="flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 col-span-2">
-            <div className="flex flex-col flex-1 overflow-y-scroll">
+            <div
+              className="flex flex-col flex-1 overflow-y-scroll"
+              ref={chatScrollRef}
+            >
               {userChats[currentChatIndex].messages.length > 0 ? (
                 userChats[currentChatIndex].messages.map((message) => {
                   return (
@@ -229,27 +261,24 @@ export default function ChatsPage() {
                 placeholder="Введите ваше сообщение..."
                 className="min-h-12 resize-none border-0 p-3 shadow-none focus-visible:ring-0"
                 onChange={(e) => onMessageChanged(e)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    onMessageSend();
+                  }
+                }}
               />
               <div className="flex items-center p-3 pt-0">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Paperclip className="size-4" />
-                        <span className="sr-only">Прикрепить файл</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Прикрепить файл</TooltipContent>
-                  </Tooltip>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <Mic className="size-4" />
-                        <span className="sr-only">Голосовой ввод</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Голосовой ввод</TooltipContent>
-                  </Tooltip>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setIsChatMediaOpen(true)}
+                    >
+                      <Paperclip className="size-4" />
+                      <span className="sr-only">Прикрепить файл</span>
+                    </Button>
+                  </DropdownMenuTrigger>
                   <Button
                     size="sm"
                     className="ml-auto gap-1.5"
@@ -258,7 +287,19 @@ export default function ChatsPage() {
                     Отправить
                     <CornerDownLeft className="size-3.5" />
                   </Button>
-                </TooltipProvider>
+                  <DropdownMenuContent side="top">
+                    <DropdownMenuGroup className="flex flex-col items-start justify-center">
+                      <DropdownMenuItem className="flex justify-start">
+                        <File className="mr-2 h-4 w-4" />
+                        <Label>Файл</Label>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Video className="mr-2 h-4 w-4" />
+                        <Label>Видео</Label>
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -273,7 +314,11 @@ export default function ChatsPage() {
         <DialogContent className="p-10">
           <Label className="text-xl">Создать новый чат</Label>
           <div className="flex flex-col gap-3">
-            <Input placeholder="Название чата" />
+            <Input
+              placeholder="Название чата"
+              value={groupChatTitle}
+              onChange={(e) => setGroupChatTitle(e.target.value)}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
@@ -302,11 +347,11 @@ export default function ChatsPage() {
                     );
                   })}
                 </div>
-                <Button className="mx-auto" onClick={() => onCreateGroupChat()}>
-                  Создать
-                </Button>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button className="mx-auto" onClick={() => onCreateGroupChat()}>
+              Создать
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

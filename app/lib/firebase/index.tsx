@@ -442,7 +442,7 @@ export const getChat = async (chatId: string) => {
   const chatRef = doc(db, `users/${storageUserId}/chats/${chatId}`);
   const chatDoc = await getDoc(chatRef);
 
-  return chatDoc.data();
+  return { ...chatDoc.data(), id: chatDoc.id };
 };
 
 export const addGroupChat = async (groupChat: IGroupChat) => {

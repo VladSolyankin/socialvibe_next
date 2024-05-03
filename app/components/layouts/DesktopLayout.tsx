@@ -69,7 +69,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
     });
   };
   return (
-    <div className="w-full">
+    <div className="w-full mt-24">
       <div className="flex items-center justify-center m-8 min-h-screen">
         <div className="border-2 border-gray-600 rounded-xl">{children}</div>
       </div>
