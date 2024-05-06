@@ -161,6 +161,7 @@ export default function ChatsPage() {
       toast({
         title: "❌ Вы должны выбрать хотя бы 2 человек!",
         description: "Выберите их из списка своих друзей",
+        variant: "destructive",
       });
       return;
     }
@@ -169,6 +170,7 @@ export default function ChatsPage() {
       toast({
         title: "❌ Название чата слишком короткое!",
         description: "Придумайте что-нибудь",
+        variant: "destructive",
       });
       return;
     }
@@ -193,17 +195,10 @@ export default function ChatsPage() {
     });
   };
 
-  const getGroupChatUsers = async (users: string[]) => {
-    const userProfiles = await getChatUsersProfiles(users);
-    setGroupChatProfiles(() => userProfiles);
-  };
-
   const scrollToBottom = () => {
     if (chatScrollRef.current)
       chatScrollRef.current.scrollTop = chatScrollRef.current?.scrollHeight;
   };
-
-  console.log(groupChatProfiles);
 
   return (
     <div className="mt-4 h-screen max-w-5xl">

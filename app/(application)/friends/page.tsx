@@ -1,14 +1,7 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import FriendsList from "@/components/pages/friends/FriendsList";
+import PeopleList from "@/components/pages/friends/PeopleList";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,13 +12,10 @@ import {
   getUser,
   getUserFriends,
 } from "@/lib/firebase";
-import { nanoid } from "nanoid";
 import React, { useEffect, useState } from "react";
 import Emoji from "react-emoji-render";
 import { AiOutlineUsergroupAdd } from "react-icons/ai";
 import { FaUserFriends } from "react-icons/fa";
-import PeopleList from "@/components/pages/friends/PeopleList";
-import FriendsList from "@/components/pages/friends/FriendsList";
 
 export default function FriendsPage() {
   const [users, setUsers] = useState([]);
@@ -46,7 +36,7 @@ export default function FriendsPage() {
   const onSearchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsSearched(true);
     const filter = users.filter((user) =>
-      user.full_name.toLowerCase().includes(e.target.value),
+      user.full_name.toLowerCase().includes(e.target.value)
     );
     setFilteredUsers(filter);
     if (e.target.value === "") {
@@ -57,7 +47,7 @@ export default function FriendsPage() {
   const onSearchFriends = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsSearched(true);
     const filter = friends.filter((friend) =>
-      friend.full_name.toLowerCase().includes(e.target.value),
+      friend.full_name.toLowerCase().includes(e.target.value)
     );
     setFilteredFriends(filter);
     if (e.target.value === "") {
@@ -68,7 +58,7 @@ export default function FriendsPage() {
   const fetchAllUsers = async () => {
     const fetchedUsers = await getAllUsers();
     const filteredUsers = fetchedUsers.filter(
-      (user) => user.id !== localStorage.getItem("userAuth"),
+      (user) => user.id !== localStorage.getItem("userAuth")
     );
     setUsers(filteredUsers);
   };

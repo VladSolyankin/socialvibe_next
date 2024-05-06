@@ -1,12 +1,15 @@
+import { cities } from "@/constants";
 import { useLoading } from "@/hooks/useLoading";
-import { Button } from "../ui/button";
-import { Icons } from "../ui/icons";
-import { Input } from "../ui/input";
-import { Label } from "../ui/label";
-import { Separator } from "../ui/separator";
-import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { createUserDocument } from "@/lib/firebase";
+import { onUserSignUp } from "@/lib/firebase/auth";
+import { auth } from "@/lib/firebase/config";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "../ui/button";
+import { Dialog, DialogContent, DialogHeader } from "../ui/dialog";
 import {
   Form,
   FormControl,
@@ -14,21 +17,17 @@ import {
   FormItem,
   FormMessage,
 } from "../ui/form";
-import { createUserDocument } from "@/lib/firebase";
-import { auth } from "@/lib/firebase/config";
-import { onUserSignUp } from "@/lib/firebase/auth";
-import { useToast } from "../ui/use-toast";
-import { redirect, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader } from "../ui/dialog";
-import { FolderUp } from "lucide-react";
+import { Icons } from "../ui/icons";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { cities } from "@/constants";
+import { Separator } from "../ui/separator";
+import { useToast } from "../ui/use-toast";
 
 const formSchema = z
   .object({
@@ -85,12 +84,7 @@ export const SignUpForm = () => {
     setIsOpen(true);
   }, []);
 
-  const onStepChange = (step: string) => {
-    steps[step] = true;
-    if (steps[1] && steps[2] && steps[3] && steps[4]) {
-      onSubmit();
-    }
-  };
+  const onStepChange = (step: string) => {};
 
   return (
     <div className="flex flex-col items-center justify-center w-[50%] gap-5">

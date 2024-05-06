@@ -112,6 +112,7 @@ export default function NewsPage() {
       toast({
         title: "❗️ Нельзя оставлять пост пустым",
         description: "Это ведь как никак пост!",
+        variant: "destructive",
       });
       return;
     }
@@ -120,6 +121,7 @@ export default function NewsPage() {
       toast({
         title: "❗️ Нельзя добавлять более 10 изображений",
         description: "Многовато будет!",
+        variant: "destructive",
       });
       return;
     }

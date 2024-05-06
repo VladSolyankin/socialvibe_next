@@ -78,7 +78,6 @@ export default function PhotosPage() {
 
   useEffect(() => {
     fetchUserAlbums();
-    console.log(userAlbums);
   }, []);
 
   const fetchUserImages = async () => {
@@ -120,23 +119,16 @@ export default function PhotosPage() {
     setIsDialogOpen(false);
   };
 
-  const onShowImageDialog = (image: string, index: number) => {
-    setSelectedImage(image);
-    setImageDialogOpen(true);
-    setDeleteImageIndex(index);
-  };
-
   const onImageDialogClose = () => {
     setImageDialogOpen(false);
   };
 
   const onAddFormSubmit = async () => {
-    //addUserStorageImage(addImageTitle, selectedFile);
-
     if (addImageTitle.length === 0) {
       toast({
         title: "❌ Название не может быть пустым!",
         description: "Заполните поле с названием",
+        variant: "destructive",
       });
       return;
     }
@@ -145,6 +137,7 @@ export default function PhotosPage() {
       toast({
         title: "❌ Название не может быть больше 20 символов!",
         description: "Сделайте название короче",
+        variant: "destructive",
       });
       return;
     }
@@ -153,6 +146,7 @@ export default function PhotosPage() {
       toast({
         title: "❌ Вы не выбрали файл!",
         description: "Выберите файл для добавления",
+        variant: "destructive",
       });
     }
 
