@@ -2,7 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,10 +37,12 @@ import {
   Video,
 } from "lucide-react";
 import { nanoid } from "nanoid";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ChatItem } from "react-chat-elements";
 import "react-chat-elements/dist/main.css";
+import { FileWithPath, useDropzone } from "react-dropzone";
 import Emoji from "react-emoji-render";
+import { BiLandscape } from "react-icons/bi";
 import { BsFilterRight } from "react-icons/bs";
 import { MdAddCircleOutline } from "react-icons/md";
 
@@ -49,6 +56,8 @@ export default function ChatsPage() {
   const [isNewChatDialog, setIsNewChatDialog] = useState(false);
   const [selectedGroupMembers, setSelectedGroupMembers] = useState([]);
   const [groupChatTitle, setGroupChatTitle] = useState("");
+  const [selectedFileURL, setSelectedFileURL] = useState("");
+  const [isFileSelected, setIsFileSelected] = useState(false);
   const [isChatMediaOpen, setIsChatMediaOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
@@ -72,6 +81,24 @@ export default function ChatsPage() {
     const fetch = await getUserFriends();
     setUserFriends(() => fetch);
   };
+
+  const onDrop = useCallback((files: FileWithPath[]) => {
+    setIsFileSelected(true);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedFileURL(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".svg"],
+    },
+  });
 
   const onChatSelect = async (index: number) => {
     setIsChatVisible(true);
@@ -140,11 +167,13 @@ export default function ChatsPage() {
       id: chatId,
       users: selectedGroupMembers as string[],
       messages: [],
-      title: "Новый чат",
-      avatar_url: "placeholder",
+      title: groupChatTitle,
+      avatar_url: selectedFileURL || "/default_profile.png",
     });
     setIsNewChatDialog(false);
     setSelectedGroupMembers([]);
+    const updatedChats = await getChats();
+    setUserChats(() => updatedChats);
 
     toast({
       title: "✅ Чат создан!",
@@ -312,13 +341,34 @@ export default function ChatsPage() {
       </CardContent>
       <Dialog open={isNewChatDialog} onOpenChange={setIsNewChatDialog}>
         <DialogContent className="p-10">
-          <Label className="text-xl">Создать новый чат</Label>
+          <Label className="text-xl">💬 Создать новый чат</Label>
           <div className="flex flex-col gap-3">
-            <Input
-              placeholder="Название чата"
-              value={groupChatTitle}
-              onChange={(e) => setGroupChatTitle(e.target.value)}
-            />
+            <div className="flex items-center gap-4 py-4">
+              <div
+                className="h-24 w-24 basis-1/3 border-4 border-dashed rounded-full flex flex-col items-center justify-center"
+                {...getRootProps()}
+              >
+                <input type="file" id="files" {...getInputProps()} />
+                <div
+                  className={`${
+                    isFileSelected ? "hidden" : "block"
+                  } flex flex-col items-center`}
+                >
+                  <BiLandscape className="w-12 h-12" />
+                </div>
+                <img
+                  src={selectedFileURL}
+                  className={`${
+                    isFileSelected ? "block" : "hidden"
+                  } w-full h-full object-fill rounded-full p-1`}
+                />
+              </div>
+              <Input
+                placeholder="Название чата"
+                value={groupChatTitle}
+                onChange={(e) => setGroupChatTitle(e.target.value)}
+              />
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">

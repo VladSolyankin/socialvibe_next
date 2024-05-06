@@ -446,9 +446,9 @@ export const getChat = async (chatId: string) => {
 };
 
 export const addGroupChat = async (groupChat: IGroupChat) => {
-  const { id, members } = groupChat;
+  const { id, users } = groupChat;
 
-  for (const user of members) {
+  for (const user of users) {
     await setDoc(doc(db, `users/${user}/chats/${id}`), groupChat);
   }
 };
