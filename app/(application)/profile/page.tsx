@@ -1,6 +1,7 @@
 "use client";
 import { Loader } from "@/components/shared/Loader";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Toaster } from "@/components/ui/toaster";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -35,6 +41,7 @@ import { FileWithPath, useDropzone } from "react-dropzone";
 import Emoji from "react-emoji-render";
 import { BiArrowBack, BiLandscape } from "react-icons/bi";
 import { IoPencilSharp } from "react-icons/io5";
+import { CalendarIcon } from "lucide-react";
 
 export default function ProfilePage() {
   const [currentUser, setCurrentUser] = useState<IUser>(INITIAL_USER);
@@ -49,6 +56,7 @@ export default function ProfilePage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isUserProfile, setIsUserProfile] = useState(true);
   const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [date, setDate] = useState(new Date());
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -347,6 +355,33 @@ export default function ProfilePage() {
           <DialogHeader>
             <DialogTitle>Редактирование информации</DialogTitle>
           </DialogHeader>
+          <div className="flex flex-col gap-5">
+            <Input placeholder="Город" />
+            <Input placeholder="Телефон" />
+            <Input placeholder="Статус" />
+            <Label>Дата рождения:</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant={"outline"}>
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? (
+                    date.toLocaleDateString("RU-ru")
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" side="top">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={setDate}
+                  lang="ru"
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
           <div className="flex flex-col gap-4 py-4">
             <Button onClick={onHandleSave}>Сохранить</Button>
           </div>

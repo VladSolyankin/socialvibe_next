@@ -189,7 +189,7 @@ export default function NewsPage() {
               <div className="flex flex-col gap-3 w-[35vw] justify-center">
                 <div className="w-full flex items-center justify-center gap-3">
                   <img
-                    src={`${currentUser.avatar_url || "/default_profile.png"}`}
+                    src={`${(currentUser && currentUser.avatar_url) || "/default_profile.png"}`}
                     alt="Profile picture"
                     className="w-8 h-8 rounded-[50%]"
                   />
@@ -239,163 +239,167 @@ export default function NewsPage() {
                     .sort((a, b) => b.date - a.date)
                     .map((post: IUserPost, index) => {
                       return (
-                        <Card className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8">
-                          <div className="flex flex-col justify-center gap-3">
-                            <div className="flex items-center gap-3">
-                              <img
-                                src={`${
-                                  currentUser.avatar_url ||
-                                  "/default_profile.png"
-                                }`}
-                                alt=""
-                                className="w-10 h-10 rounded-[50%]"
-                              />
-                              <span>{currentUser.full_name}</span>
-                              <span className="ml-auto">
-                                {post &&
-                                  post.date
-                                    .toDate()
-                                    .toLocaleString()
-                                    .replace(",", " •")}
-                              </span>
-                            </div>
-                            <div>{post.content}</div>
-                            <Carousel>
-                              <CarouselContent>
-                                {post.images &&
-                                  post.images.map((image) => (
-                                    <CarouselItem
-                                      key={nanoid()}
-                                      className="w-full flex items-center justify-center"
-                                    >
-                                      <img
-                                        src={image}
-                                        alt="Carousel image"
-                                        className="rounded-xl max-h-[500px]"
-                                      />
-                                    </CarouselItem>
-                                  ))}
-                              </CarouselContent>
-                              {post.images.length > 0 && (
-                                <>
-                                  <CarouselPrevious />
-                                  <CarouselNext />
-                                </>
-                              )}
-                            </Carousel>
-                            <div className="flex items-center">
-                              <Button
-                                className="text-sm"
-                                variant={"ghost"}
-                                onClick={() => onLikePost(post)}
-                              >
-                                <div className="flex items-center gap-3">
-                                  {isPostLiked ? (
-                                    <FcLike className="w-6 h-6" />
-                                  ) : (
-                                    <FaRegHeart className="w-6 h-6" />
-                                  )}
-                                  <span className="text-md">{post.likes}</span>
-                                </div>
-                              </Button>
-                              <Button variant={"ghost"}>
-                                <div className="flex gap-3 items-center">
-                                  <FaRegComment className="w-6 h-6" />
-                                  <span className="text-md">
-                                    {post.comments.length}
-                                  </span>
-                                </div>
-                              </Button>
-                              <div className="flex flex-col"></div>
-                            </div>
-                          </div>
-                          <div id="comments">
-                            <Accordion collapsible type="single">
-                              <AccordionItem value="comments-item">
-                                <AccordionTrigger>
-                                  Показать комментарии
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                  {post.comments.length > 0 ? (
-                                    post.comments.map((comment) => {
-                                      return (
-                                        <div
-                                          key={nanoid()}
-                                          id="comment"
-                                          className="flex items-center border-t-2 border-gray-800 p-2 gap-3"
-                                        >
-                                          <img
-                                            src={`${
-                                              comment.userPreview ||
-                                              "default_profile.png"
-                                            }`}
-                                            className="w-8 h-8"
-                                            alt=""
-                                          />
-                                          <div>
-                                            <span className="text-blue-500">
-                                              {comment.userName}
-                                            </span>
-                                            <p className="text-sm">
-                                              {comment.content}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      );
-                                    })
-                                  ) : (
-                                    <Label className="flex flex-col items-center text-center text-lg">
-                                      Комментариев ещё нет.
-                                      <br />
-                                      <div>
-                                        Будьте{" "}
-                                        <span className="text-blue-500">
-                                          первым!
-                                        </span>
-                                      </div>
-                                    </Label>
-                                  )}
-                                </AccordionContent>
-                              </AccordionItem>
-                            </Accordion>
-                            <div className="flex items-center justify-center gap-3 my-5">
-                              <img
-                                src={`${
-                                  currentUser.avatar_url ||
-                                  "/default_profile.png"
-                                }`}
-                                alt="Profile picture"
-                                className="w-8 h-8 border-blue-400 border-[2px] rounded-[50%]"
-                              />
-                              <form
-                                className="w-[35vw] flex items-center justify-center"
-                                onSubmit={(e) => {
-                                  e.preventDefault();
-                                }}
-                              >
-                                <Input
-                                  className="h-12"
-                                  placeholder="Напишите новый комментарий..."
-                                  name="comment"
-                                  value={currentPostComment}
-                                  onChange={(e) =>
-                                    setCurrentPostComment(e.target.value)
-                                  }
-                                  onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                      e.preventDefault();
-                                      onCommentPost(post);
-                                      setCurrentPostComment("");
-                                    }
-                                  }}
+                        <>
+                          <Card className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8">
+                            <div className="flex flex-col justify-center gap-3">
+                              <div className="flex items-center gap-3">
+                                <img
+                                  src={`${
+                                    (currentUser && currentUser.avatar_url) ||
+                                    "/default_profile.png"
+                                  }`}
+                                  alt=""
+                                  className="w-10 h-10 rounded-[50%]"
                                 />
-                              </form>
-                              <Button onSubmit={() => {}} size="icon">
-                                <PaperPlaneIcon />
-                              </Button>
+                                <span>{currentUser.full_name}</span>
+                                <span className="ml-auto">
+                                  {post &&
+                                    post.date
+                                      .toDate()
+                                      .toLocaleString()
+                                      .replace(",", " •")}
+                                </span>
+                              </div>
+                              <div>{post.content}</div>
+                              <Carousel>
+                                <CarouselContent>
+                                  {post.images &&
+                                    post.images.map((image) => (
+                                      <CarouselItem
+                                        key={nanoid()}
+                                        className="w-full flex items-center justify-center"
+                                      >
+                                        <img
+                                          src={image}
+                                          alt="Carousel image"
+                                          className="rounded-xl max-h-[500px]"
+                                        />
+                                      </CarouselItem>
+                                    ))}
+                                </CarouselContent>
+                                {post.images.length > 0 && (
+                                  <>
+                                    <CarouselPrevious />
+                                    <CarouselNext />
+                                  </>
+                                )}
+                              </Carousel>
+                              <div className="flex items-center">
+                                <Button
+                                  className="text-sm"
+                                  variant={"ghost"}
+                                  onClick={() => onLikePost(post)}
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {isPostLiked ? (
+                                      <FcLike className="w-6 h-6" />
+                                    ) : (
+                                      <FaRegHeart className="w-6 h-6" />
+                                    )}
+                                    <span className="text-md">
+                                      {post.likes}
+                                    </span>
+                                  </div>
+                                </Button>
+                                <Button variant={"ghost"}>
+                                  <div className="flex gap-3 items-center">
+                                    <FaRegComment className="w-6 h-6" />
+                                    <span className="text-md">
+                                      {post.comments.length}
+                                    </span>
+                                  </div>
+                                </Button>
+                                <div className="flex flex-col"></div>
+                              </div>
                             </div>
-                          </div>
-                        </Card>
+                            <div id="comments">
+                              <Accordion collapsible type="single">
+                                <AccordionItem value="comments-item">
+                                  <AccordionTrigger>
+                                    Показать комментарии
+                                  </AccordionTrigger>
+                                  <AccordionContent>
+                                    {post.comments.length > 0 ? (
+                                      post.comments.map((comment) => {
+                                        return (
+                                          <div
+                                            key={nanoid()}
+                                            id="comment"
+                                            className="flex items-center border-t-2 border-gray-800 p-2 gap-3"
+                                          >
+                                            <img
+                                              src={`${
+                                                comment.userPreview ||
+                                                "default_profile.png"
+                                              }`}
+                                              className="w-8 h-8"
+                                              alt=""
+                                            />
+                                            <div>
+                                              <span className="text-blue-500">
+                                                {comment.userName}
+                                              </span>
+                                              <p className="text-sm">
+                                                {comment.content}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        );
+                                      })
+                                    ) : (
+                                      <Label className="flex flex-col items-center text-center text-lg">
+                                        Комментариев ещё нет.
+                                        <br />
+                                        <div>
+                                          Будьте{" "}
+                                          <span className="text-blue-500">
+                                            первым!
+                                          </span>
+                                        </div>
+                                      </Label>
+                                    )}
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                              <div className="flex items-center justify-center gap-3 my-5">
+                                <img
+                                  src={`${
+                                    (currentUser && currentUser.avatar_url) ||
+                                    "/default_profile.png"
+                                  }`}
+                                  alt="Profile picture"
+                                  className="w-8 h-8 border-blue-400 border-[2px] rounded-[50%]"
+                                />
+                                <form
+                                  className="w-[35vw] flex items-center justify-center"
+                                  onSubmit={(e) => {
+                                    e.preventDefault();
+                                  }}
+                                >
+                                  <Input
+                                    className="h-12"
+                                    placeholder="Напишите новый комментарий..."
+                                    name="comment"
+                                    value={currentPostComment}
+                                    onChange={(e) =>
+                                      setCurrentPostComment(e.target.value)
+                                    }
+                                    onKeyDown={(e) => {
+                                      if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        onCommentPost(post);
+                                        setCurrentPostComment("");
+                                      }
+                                    }}
+                                  />
+                                </form>
+                                <Button onSubmit={() => {}} size="icon">
+                                  <PaperPlaneIcon />
+                                </Button>
+                              </div>
+                            </div>
+                          </Card>
+                        </>
                       );
                     })
                 ) : (
@@ -413,171 +417,181 @@ export default function NewsPage() {
             <TabsContent value="news">
               <div className="flex flex-col gap-5 items-center justify-center">
                 {isLoaded ? (
+                  usersWithPosts &&
                   usersWithPosts.map((user: IUserPost, index) => {
                     return (
-                      <div className="flex flex-col gap-10">
-                        {user.posts.map((post) => {
-                          return (
-                            <Card className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8">
-                              <div className="flex flex-col justify-center gap-3">
-                                <div className="flex items-center gap-3">
-                                  <img
-                                    src={`${
-                                      user.avatar_url || "/default_profile.png"
-                                    }`}
-                                    alt=""
-                                    className="w-10 h-10 rounded-[50%]"
-                                  />
-                                  <span>{user.full_name}</span>
-                                  <span className="ml-auto">
-                                    {post &&
-                                      post.date
-                                        .toDate()
-                                        .toLocaleString()
-                                        .replace(",", " •")}
-                                  </span>
-                                </div>
-                                <div>{post.content}</div>
-                                <Carousel>
-                                  <CarouselContent>
-                                    {post.images &&
-                                      post.images.map((image) => (
-                                        <CarouselItem
-                                          key={nanoid()}
-                                          className="w-full flex items-center justify-center"
+                      <>
+                        <div className="flex flex-col gap-10">
+                          {user &&
+                            user.posts.map((post) => {
+                              return (
+                                <>
+                                  <Card className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8">
+                                    <div className="flex flex-col justify-center gap-3">
+                                      <div className="flex items-center gap-3">
+                                        <img
+                                          src={`${
+                                            user.avatar_url ||
+                                            "/default_profile.png"
+                                          }`}
+                                          alt=""
+                                          className="w-10 h-10 rounded-[50%]"
+                                        />
+                                        <span>{user.full_name}</span>
+                                        <span className="ml-auto">
+                                          {post &&
+                                            post.date
+                                              .toDate()
+                                              .toLocaleString()
+                                              .replace(",", " •")}
+                                        </span>
+                                      </div>
+                                      <div>{post.content}</div>
+                                      <Carousel>
+                                        <CarouselContent>
+                                          {post.images &&
+                                            post.images.map((image) => (
+                                              <CarouselItem
+                                                key={nanoid()}
+                                                className="w-full flex items-center justify-center"
+                                              >
+                                                <img
+                                                  src={image}
+                                                  alt="Carousel image"
+                                                  className="rounded-xl max-h-[500px]"
+                                                />
+                                              </CarouselItem>
+                                            ))}
+                                        </CarouselContent>
+                                        {post.images.length > 0 && (
+                                          <>
+                                            <CarouselPrevious />
+                                            <CarouselNext />
+                                          </>
+                                        )}
+                                      </Carousel>
+                                      <div className="flex items-center">
+                                        <Button
+                                          className="text-sm"
+                                          variant={"ghost"}
+                                          onClick={() => onLikePost(post)}
                                         >
-                                          <img
-                                            src={image}
-                                            alt="Carousel image"
-                                            className="rounded-xl max-h-[500px]"
-                                          />
-                                        </CarouselItem>
-                                      ))}
-                                  </CarouselContent>
-                                  {post.images.length > 0 && (
-                                    <>
-                                      <CarouselPrevious />
-                                      <CarouselNext />
-                                    </>
-                                  )}
-                                </Carousel>
-                                <div className="flex items-center">
-                                  <Button
-                                    className="text-sm"
-                                    variant={"ghost"}
-                                    onClick={() => onLikePost(post)}
-                                  >
-                                    <div className="flex items-center gap-3">
-                                      {isPostLiked ? (
-                                        <FcLike className="w-6 h-6" />
-                                      ) : (
-                                        <FaRegHeart className="w-6 h-6" />
-                                      )}
-                                      <span className="text-md">
-                                        {post.likes}
-                                      </span>
-                                    </div>
-                                  </Button>
-                                  <Button variant={"ghost"}>
-                                    <div className="flex gap-3 items-center">
-                                      <FaRegComment className="w-6 h-6" />
-                                      <span className="text-md">
-                                        {post.comments.length}
-                                      </span>
-                                    </div>
-                                  </Button>
-                                  <div className="flex flex-col"></div>
-                                </div>
-                              </div>
-                              <div>
-                                <Accordion collapsible type="single">
-                                  <AccordionItem value="comments-item">
-                                    <AccordionTrigger>
-                                      Показать комментарии
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                      {post.comments.length > 0 ? (
-                                        post.comments.map((comment) => {
-                                          return (
-                                            <div
-                                              key={nanoid()}
-                                              id="comment"
-                                              className="flex items-center border-t-2 border-gray-800 p-2 gap-3"
-                                            >
-                                              <img
-                                                src={`${
-                                                  comment.userPreview ||
-                                                  "default_profile.png"
-                                                }`}
-                                                className="w-8 h-8"
-                                                alt=""
-                                              />
-                                              <div>
-                                                <span className="text-blue-500">
-                                                  {comment.userName}
-                                                </span>
-                                                <p className="text-sm">
-                                                  {comment.content}
-                                                </p>
-                                              </div>
-                                            </div>
-                                          );
-                                        })
-                                      ) : (
-                                        <Label className="flex flex-col items-center text-center text-lg">
-                                          Комментариев ещё нет.
-                                          <br />
-                                          <div>
-                                            Будьте{" "}
-                                            <span className="text-blue-500">
-                                              первым!
+                                          <div className="flex items-center gap-3">
+                                            {isPostLiked ? (
+                                              <FcLike className="w-6 h-6" />
+                                            ) : (
+                                              <FaRegHeart className="w-6 h-6" />
+                                            )}
+                                            <span className="text-md">
+                                              {post.likes}
                                             </span>
                                           </div>
-                                        </Label>
-                                      )}
-                                    </AccordionContent>
-                                  </AccordionItem>
-                                </Accordion>
-                                <div className="flex items-center justify-center gap-3 my-5">
-                                  <img
-                                    src={`${
-                                      currentUser.avatar_url ||
-                                      "/default_profile.png"
-                                    }`}
-                                    alt="Profile picture"
-                                    className="w-8 h-8 border-blue-400 border-[2px] rounded-[50%]"
-                                  />
-                                  <form
-                                    className="w-[35vw] flex items-center justify-center"
-                                    onSubmit={(e) => {
-                                      e.preventDefault();
-                                    }}
-                                  >
-                                    <Input
-                                      className="h-12"
-                                      placeholder="Напишите новый комментарий..."
-                                      name="comment"
-                                      onChange={(e) => {
-                                        setCurrentPostComment(e.target.value);
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                          e.preventDefault();
-                                          onCommentPost(post);
-                                          setCurrentPostComment("");
-                                        }
-                                      }}
-                                    />
-                                  </form>
-                                  <Button size="icon">
-                                    <PaperPlaneIcon />
-                                  </Button>
-                                </div>
-                              </div>
-                            </Card>
-                          );
-                        })}
-                      </div>
+                                        </Button>
+                                        <Button variant={"ghost"}>
+                                          <div className="flex gap-3 items-center">
+                                            <FaRegComment className="w-6 h-6" />
+                                            <span className="text-md">
+                                              {post.comments.length}
+                                            </span>
+                                          </div>
+                                        </Button>
+                                        <div className="flex flex-col"></div>
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <Accordion collapsible type="single">
+                                        <AccordionItem value="comments-item">
+                                          <AccordionTrigger>
+                                            Показать комментарии
+                                          </AccordionTrigger>
+                                          <AccordionContent>
+                                            {post.comments.length > 0 ? (
+                                              post.comments.map((comment) => {
+                                                return (
+                                                  <div
+                                                    key={nanoid()}
+                                                    id="comment"
+                                                    className="flex items-center border-t-2 border-gray-800 p-2 gap-3"
+                                                  >
+                                                    <img
+                                                      src={`${
+                                                        comment.userPreview ||
+                                                        "default_profile.png"
+                                                      }`}
+                                                      className="w-8 h-8"
+                                                      alt=""
+                                                    />
+                                                    <div>
+                                                      <span className="text-blue-500">
+                                                        {comment.userName}
+                                                      </span>
+                                                      <p className="text-sm">
+                                                        {comment.content}
+                                                      </p>
+                                                    </div>
+                                                  </div>
+                                                );
+                                              })
+                                            ) : (
+                                              <Label className="flex flex-col items-center text-center text-lg">
+                                                Комментариев ещё нет.
+                                                <br />
+                                                <div>
+                                                  Будьте{" "}
+                                                  <span className="text-blue-500">
+                                                    первым!
+                                                  </span>
+                                                </div>
+                                              </Label>
+                                            )}
+                                          </AccordionContent>
+                                        </AccordionItem>
+                                      </Accordion>
+                                      <div className="flex items-center justify-center gap-3 my-5">
+                                        <img
+                                          src={`${
+                                            (currentUser &&
+                                              currentUser.avatar_url) ||
+                                            "/default_profile.png"
+                                          }`}
+                                          alt="Profile picture"
+                                          className="w-8 h-8 border-blue-400 border-[2px] rounded-[50%]"
+                                        />
+                                        <form
+                                          className="w-[35vw] flex items-center justify-center"
+                                          onSubmit={(e) => {
+                                            e.preventDefault();
+                                          }}
+                                        >
+                                          <Input
+                                            className="h-12"
+                                            placeholder="Напишите новый комментарий..."
+                                            name="comment"
+                                            onChange={(e) => {
+                                              setCurrentPostComment(
+                                                e.target.value
+                                              );
+                                            }}
+                                            onKeyDown={(e) => {
+                                              if (e.key === "Enter") {
+                                                e.preventDefault();
+                                                onCommentPost(post);
+                                                setCurrentPostComment("");
+                                              }
+                                            }}
+                                          />
+                                        </form>
+                                        <Button size="icon">
+                                          <PaperPlaneIcon />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </Card>
+                                </>
+                              );
+                            })}
+                        </div>
+                      </>
                     );
                   })
                 ) : (

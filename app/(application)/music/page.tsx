@@ -125,6 +125,8 @@ export default function MusicPage({ ...props }) {
     if (isPlaying) {
       setCurrentTrackProgress((prev) => (prev >= 100 ? 100 : prev + 100 / 30));
       setTimeout(updateProgress, 1000);
+    } else {
+      setCurrentTrackProgress(currentTrackProgress);
     }
   };
 
@@ -133,8 +135,6 @@ export default function MusicPage({ ...props }) {
       updateProgress();
     }
   }, [isPlaying]);
-
-  console.log(currentTrackProgress);
 
   return (
     <div className="min-w-[700px] min-h-screen mx-3 max-w-xl">

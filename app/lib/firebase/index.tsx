@@ -1,8 +1,10 @@
 "use client";
+import { IGroupChat, IUserPhotos } from "@/types";
+import { nanoid } from "ai";
 import {
   DocumentData,
-  Timestamp,
   addDoc,
+  arrayRemove,
   arrayUnion,
   collection,
   doc,
@@ -13,13 +15,9 @@ import {
   setDoc,
   updateDoc,
   where,
-  arrayRemove,
 } from "firebase/firestore";
-import { db, storage, auth, rtdb } from "./config";
-import { IGroupChat, IUserPhotos } from "@/types";
 import { ref, uploadBytes } from "firebase/storage";
-import { set, ref as dbRef, get, child, update } from "firebase/database";
-import { nanoid } from "ai";
+import { db, storage } from "./config";
 
 const storageUserId =
   typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
@@ -387,8 +385,6 @@ export const addUserStorageImage = async (title: string, file: File) => {
   await uploadBytes(userStorageRef, file).then(() => console.log("file added"));
 };
 
-export const getUserAlbumImages = () => {};
-
 export const deleteUserImage = async (index: number) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userImages = await getDoc(userRef);
@@ -479,6 +475,13 @@ export const sendMessage = async (chatId: string, text: string) => {
     }),
   ]);
 };
+
+export const getChatUsersProfiles = async (users: string[]) =>
+  Promise.all(
+    users
+      .map((user) => getDoc(doc(db, `users/${user}`)))
+      .map((p) => p.then((doc) => doc.data()))
+  );
 
 export const deleteMessage = async (
   chatTitle: string,

@@ -13,6 +13,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ import { toast } from "@/components/ui/use-toast";
 import {
   addGroupChat,
   getChat,
+  getChatUsersProfiles,
   getChats,
   getUserFriends,
   initChats,
@@ -34,6 +36,7 @@ import {
   CornerDownLeft,
   File,
   Paperclip,
+  Users,
   Video,
 } from "lucide-react";
 import { nanoid } from "nanoid";
@@ -51,13 +54,13 @@ export default function ChatsPage() {
   const [userFriends, setUserFriends] = useState([]);
   const [isChatVisible, setIsChatVisible] = useState(false);
   const [currentMessage, setCurrentMessage] = useState("");
-  const [openedChat, setOpenedChat] = useState({});
   const [currentChatIndex, setCurrentChatIndex] = useState(0);
   const [isNewChatDialog, setIsNewChatDialog] = useState(false);
   const [selectedGroupMembers, setSelectedGroupMembers] = useState([]);
   const [groupChatTitle, setGroupChatTitle] = useState("");
   const [selectedFileURL, setSelectedFileURL] = useState("");
   const [isFileSelected, setIsFileSelected] = useState(false);
+  const [groupChatProfiles, setGroupChatProfiles] = useState([]);
   const [isChatMediaOpen, setIsChatMediaOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
@@ -101,8 +104,15 @@ export default function ChatsPage() {
   });
 
   const onChatSelect = async (index: number) => {
+    setGroupChatProfiles([]);
     setIsChatVisible(true);
     setCurrentChatIndex(index);
+    if (userChats[currentChatIndex].users.length > 2)
+      await getChatUsersProfiles(userChats[currentChatIndex].users).then(
+        (res) => {
+          setGroupChatProfiles(() => res);
+        }
+      );
   };
 
   const onChatSearch = async () => {};
@@ -120,6 +130,7 @@ export default function ChatsPage() {
             newChats[currentChatIndex] = res;
             return newChats;
           });
+          userChats[currentChatIndex].avatar_url;
         }
       });
     }
@@ -161,6 +172,7 @@ export default function ChatsPage() {
       });
       return;
     }
+    userChats[currentChatIndex].avatar_url;
 
     const chatId = nanoid();
     await addGroupChat({
@@ -181,10 +193,18 @@ export default function ChatsPage() {
     });
   };
 
+  const getGroupChatUsers = async (users: string[]) => {
+    const userProfiles = await getChatUsersProfiles(users);
+    setGroupChatProfiles(() => userProfiles);
+  };
+
   const scrollToBottom = () => {
     if (chatScrollRef.current)
       chatScrollRef.current.scrollTop = chatScrollRef.current?.scrollHeight;
   };
+
+  console.log(groupChatProfiles);
+
   return (
     <div className="mt-4 h-screen max-w-5xl">
       <CardContent className="h-full grid grid-cols-3 gap-6">
@@ -219,7 +239,11 @@ export default function ChatsPage() {
                   <div key={nanoid()}>
                     <ChatItem
                       className="text-black rounded-lg focus-within:ring-1 hover:ring-2 ring-blue-400"
-                      avatar={chat.preview ?? "/default_profile.png"}
+                      avatar={
+                        chat.preview ||
+                        userChats[index].avatar_url ||
+                        "/default_profile.png"
+                      }
                       alt={"User message"}
                       title={chat.title}
                       subtitle={
@@ -243,6 +267,48 @@ export default function ChatsPage() {
 
         {isChatVisible ? (
           <div className="flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 col-span-2">
+            {userChats[currentChatIndex].users.length > 2 ? (
+              <div className="flex items-center justify-between h-12 bg-black rounded-xl object-contain px-4 mb-4 ring-1 gap-3">
+                <img
+                  src={`${userChats[currentChatIndex].avatar_url || "/default_profile.png"}`}
+                  alt="Selected chat image"
+                  className="h-8 w-8 rounded-full border-2 border-white"
+                />
+                <Label>{userChats[currentChatIndex].title}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <Button variant={"secondary"}>
+                      <Users className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuLabel className="text-center">
+                      Участники
+                    </DropdownMenuLabel>
+                    <div>
+                      {groupChatProfiles &&
+                        groupChatProfiles.map((user: IUser) => {
+                          return (
+                            <DropdownMenuItem
+                              key={nanoid()}
+                              className="flex gap-3 items-center justify-start"
+                            >
+                              <img
+                                src={`${user.avatar_url || "/default_profile.png"}`}
+                                alt=""
+                                className="h-6 w-6 rounded-full"
+                              />
+                              <Label>{user.full_name}</Label>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <></>
+            )}
             <div
               className="flex flex-col flex-1 overflow-y-scroll"
               ref={chatScrollRef}
@@ -280,7 +346,7 @@ export default function ChatsPage() {
                 </div>
               )}
             </div>
-            <div className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring">
+            <div className="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring mt-5">
               <Label htmlFor="message" className="sr-only">
                 Message
               </Label>
@@ -382,7 +448,7 @@ export default function ChatsPage() {
                     return (
                       <div
                         key={nanoid()}
-                        className={`${selectedGroupMembers.includes(friend.id as never) ? "bg-purple-600" : "bg-background"} flex flex-col items-center justify-center p-3 rounded-xl`}
+                        className={`${selectedGroupMembers.includes(friend.id as never) ? "bg-purple-600" : "bg-background"} flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer`}
                         onClick={() => {
                           onSelectGroupMember(friend.id);
                         }}

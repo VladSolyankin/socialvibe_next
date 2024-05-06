@@ -46,7 +46,11 @@ import Emoji from "react-emoji-render";
 import { BiLandscape, BiSolidSave } from "react-icons/bi";
 import { CiCirclePlus } from "react-icons/ci";
 import { FcGenericSortingAsc } from "react-icons/fc";
-import Viewer from "react-viewer";
+import dynamic from "next/dynamic";
+
+const Viewer = dynamic(() => import("react-viewer"), {
+  ssr: false,
+});
 
 export default function PhotosPage() {
   const [userImages, setUserImages] = useState<Array<IUserPhotos>>([]);
@@ -89,7 +93,6 @@ export default function PhotosPage() {
 
   const onDrop = useCallback((files: FileWithPath[]) => {
     setIsFileSelected(true);
-    //setSelectedFileURL(URL.createObjectURL(files[0]));
     files.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
