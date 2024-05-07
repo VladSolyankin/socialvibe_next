@@ -33,6 +33,8 @@ import { Separator } from "../ui/separator";
 import { useToast } from "../ui/use-toast";
 import { SelectItem } from "../ui/select";
 import { nanoid } from "ai";
+import { DoubleArrowRightIcon } from "@radix-ui/react-icons";
+import { MdKeyboardDoubleArrowRight } from "react-icons/md";
 
 const formSchema = z
   .object({
@@ -59,12 +61,9 @@ export const SignUpForm = () => {
     router.push(path);
   };
   const { toast } = useToast();
-  const steps = useState({
-    first: false,
-    second: false,
-    third: false,
-    fourth: false,
-  });
+  const steps = useState({});
+  const [currentStep, setCurrentStep] = useState(1);
+  console.log(currentStep);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -89,9 +88,7 @@ export const SignUpForm = () => {
     setIsOpen(true);
   }, []);
 
-  const onStepChange = (step: string) => {};
-
-  console.log(cities);
+  const onStepChange = () => setCurrentStep((prev) => prev + 1);
 
   return (
     <div className="flex flex-col items-center justify-center w-[50%] gap-5">
@@ -176,13 +173,15 @@ export const SignUpForm = () => {
           <DialogHeader className="text-lg font-bold mx-auto">
             📋 Немного персональной информации
           </DialogHeader>
-          <div className="flex">
-            <ol className="relative text-gray-500 border-s border-gray-200 dark:border-gray-700 dark:text-gray-400 border-r-2 w-[30%]">
+          <div className={`flex`}>
+            <ol className="relative text-gray-500 border-s border-gray-200 dark:border-gray-700 dark:text-gray-400 border-r-2 w-[30%] p-3">
               <li className="mb-10 ms-6">
-                <span className="absolute flex items-center justify-center w-8 h-8 bg-green-200 rounded-full -start-4 ring-4 ring-white dark:ring-gray-900 dark:bg-green-900">
-                  {steps.first ? (
+                <span
+                  className={`absolute flex items-center justify-center w-8 h-8 ${false ? "bg-green-800" : "bg-gray-500"} rounded-full -start-4 ring-4 ring-gray-900`}
+                >
+                  {false ? (
                     <svg
-                      className="w-3.5 h-3.5 text-green-300 dark:text-green-500"
+                      className="w-3.5 h-3.5 text-green-300 dark:text-green-500 cursor-pointer"
                       aria-hidden="true"
                       xmlns="http://www.w3.org/2000/svg"
                       fill="none"
@@ -259,7 +258,9 @@ export const SignUpForm = () => {
                 <p className="text-sm">Подтвердите корректность данных</p>
               </li>
             </ol>
-            <div className="flex flex-col w-[70%] p-5">
+            <div
+              className={`${currentStep === 1 ? "block" : "hidden"} flex flex-col items-center justify-center w-[70%] p-5 gap-5`}
+            >
               <Input placeholder="Фамилия" />
               <Input placeholder="Имя" />
               <Select>
@@ -286,6 +287,55 @@ export const SignUpForm = () => {
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              <Button
+                className="flex items-center justify-center gap-1"
+                onClick={onStepChange}
+              >
+                <Label>Далее</Label>
+                <MdKeyboardDoubleArrowRight className="w-4 h-4" />
+              </Button>
+            </div>
+            <div
+              className={`${currentStep === 2 ? "block" : "hidden"} flex flex-col items-center justify-center w-[70%] p-5 gap-3`}
+            >
+              <form onSubmit={(e) => e.preventDefault()}>
+                <Label
+                  htmlFor="phone-input"
+                  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  Номер телефона:
+                </Label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 start-0 top-0 flex items-center ps-3.5 pointer-events-none">
+                    <svg
+                      className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                      aria-hidden="true"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="currentColor"
+                      viewBox="0 0 19 18"
+                    >
+                      <path d="M18 13.446a3.02 3.02 0 0 0-.946-1.985l-1.4-1.4a3.054 3.054 0 0 0-4.218 0l-.7.7a.983.983 0 0 1-1.39 0l-2.1-2.1a.983.983 0 0 1 0-1.389l.7-.7a2.98 2.98 0 0 0 0-4.217l-1.4-1.4a2.824 2.824 0 0 0-4.218 0c-3.619 3.619-3 8.229 1.752 12.979C6.785 16.639 9.45 18 11.912 18a7.175 7.175 0 0 0 5.139-2.325A2.9 2.9 0 0 0 18 13.446Z" />
+                    </svg>
+                  </div>
+                  <input
+                    type="text"
+                    id="phone-input"
+                    aria-describedby="helper-text-explanation"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    pattern="+7[0-9]{3}-[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                    placeholder="+7 (___) ___-__-__"
+                    required
+                  />
+                </div>
+                <p
+                  id="helper-text-explanation"
+                  className="mt-2 text-sm text-gray-500 dark:text-gray-400"
+                >
+                  Введите номер телефона верного формата
+                  <br />
+                  Например: +79998887766
+                </p>{" "}
+              </form>
             </div>
           </div>
         </DialogContent>
