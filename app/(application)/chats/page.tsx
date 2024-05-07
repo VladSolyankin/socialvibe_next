@@ -2,12 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardTitle } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +36,7 @@ import {
 } from "lucide-react";
 import { nanoid } from "nanoid";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { AudioRecorder } from "react-audio-voice-recorder";
 import { ChatItem } from "react-chat-elements";
 import "react-chat-elements/dist/main.css";
 import { FileWithPath, useDropzone } from "react-dropzone";
@@ -199,6 +195,8 @@ export default function ChatsPage() {
       chatScrollRef.current.scrollTop = chatScrollRef.current?.scrollHeight;
   };
 
+  const onRecordAudioMessage = async () => {};
+
   return (
     <div className="mt-4 h-screen max-w-5xl">
       <CardContent className="h-full grid grid-cols-3 gap-6">
@@ -261,7 +259,7 @@ export default function ChatsPage() {
 
         {isChatVisible ? (
           <div className="flex h-full min-h-[50vh] flex-col rounded-xl bg-muted/50 p-4 col-span-2">
-            {userChats[currentChatIndex].users.length > 2 ? (
+            {userChats && userChats[currentChatIndex].users.length > 2 ? (
               <div className="flex items-center justify-between h-12 bg-black rounded-xl object-contain px-4 mb-4 ring-1 gap-3">
                 <img
                   src={`${userChats[currentChatIndex].avatar_url || "/default_profile.png"}`}
@@ -307,7 +305,7 @@ export default function ChatsPage() {
               className="flex flex-col flex-1 overflow-y-scroll"
               ref={chatScrollRef}
             >
-              {userChats[currentChatIndex].messages.length > 0 ? (
+              {userChats && userChats[currentChatIndex].messages.length > 0 ? (
                 userChats[currentChatIndex].messages.map((message) => {
                   return (
                     <div
@@ -390,6 +388,25 @@ export default function ChatsPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
+              <div className="absolute top-3 right-3">
+                <AudioRecorder
+                  classes={{
+                    AudioRecorderClass: "h-6",
+                  }}
+                  onRecordingComplete={onRecordAudioMessage}
+                  audioTrackConstraints={{
+                    noiseSuppression: true,
+                    echoCancellation: true,
+                  }}
+                  onNotAllowedOrFound={(err) => console.table(err)}
+                  downloadOnSavePress={false}
+                  downloadFileExtension="mp3"
+                  mediaRecorderOptions={{
+                    audioBitsPerSecond: 128000,
+                  }}
+                  showVisualizer={true}
+                />
+              </div>
             </div>
           </div>
         ) : (
@@ -438,24 +455,25 @@ export default function ChatsPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="flex flex-col py-4">
                 <div className="grid grid-cols-5 gap-3 p-4">
-                  {userFriends.map((friend: IUser) => {
-                    return (
-                      <div
-                        key={nanoid()}
-                        className={`${selectedGroupMembers.includes(friend.id as never) ? "bg-purple-600" : "bg-background"} flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer`}
-                        onClick={() => {
-                          onSelectGroupMember(friend.id);
-                        }}
-                      >
-                        <img
-                          className="h-10 w-10 rounded-full"
-                          src={`${friend.avatar_url || "/default_profile.png"}`}
-                          alt="List of friends to add in group chat"
-                        />
-                        <span className="text-md">{friend.full_name}</span>
-                      </div>
-                    );
-                  })}
+                  {userFriends &&
+                    userFriends.map((friend: IUser) => {
+                      return (
+                        <div
+                          key={nanoid()}
+                          className={`${selectedGroupMembers.includes(friend.id as never) ? "bg-purple-600" : "bg-background"} flex flex-col items-center justify-center p-3 rounded-xl cursor-pointer`}
+                          onClick={() => {
+                            onSelectGroupMember(friend.id);
+                          }}
+                        >
+                          <img
+                            className="h-10 w-10 rounded-full"
+                            src={`${friend.avatar_url || "/default_profile.png"}`}
+                            alt="List of friends to add in group chat"
+                          />
+                          <span className="text-md">{friend.full_name}</span>
+                        </div>
+                      );
+                    })}
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>

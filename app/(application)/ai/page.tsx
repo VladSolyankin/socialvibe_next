@@ -24,6 +24,7 @@ import { DownloadIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { IoMdInformationCircleOutline } from "react-icons/io";
 import { CodeBlock, atomOneDark } from "react-code-blocks";
+import { Loader } from "@/components/shared/Loader";
 
 interface Message {
   id: string;
@@ -40,7 +41,7 @@ interface Props {
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat();
   const [generatedImage, setGeneratedImage] = useState("");
-  const [isGenerated, setGenerated] = useState(false);
+  const [isGenerated, setGenerated] = useState();
   const chatRef = useRef<HTMLDivElement>(null);
   const hf = new HfInference(process.env.NEXT_PUBLIC_HF_TOKEN);
 
@@ -55,15 +56,17 @@ export default function Chat() {
   };
 
   const onImagePromptSubmit = async () => {
-    const response = await hf.textToImage({
-      inputs: `${input}`,
-      model: "runwayml/stable-diffusion-v1-5",
-      parameters: {
-        negative_prompt: "blurry",
-      },
-    });
-    await setGeneratedImage(URL.createObjectURL(response));
-    await setGenerated(true);
+    setGenerated(false);
+    const response = await hf
+      .textToImage({
+        inputs: `${input}`,
+        model: "runwayml/stable-diffusion-v1-5",
+        parameters: {
+          negative_prompt: "blurry",
+        },
+      })
+      .then((res) => setGeneratedImage(URL.createObjectURL(res)))
+      .then(() => setGenerated(true));
   };
 
   const downloadImage = () => {
@@ -194,8 +197,10 @@ export default function Chat() {
               </div>
             </CardContent>
           </Card>
-          <Card className="h-full w-[80%] overflow-hidden">
-            {isGenerated ? (
+          <Card className="h-full w-[80%] overflow-hidden flex flex-col justify-center">
+            {isGenerated === false ? (
+              <Loader />
+            ) : isGenerated === true ? (
               <ContextMenu>
                 <ContextMenuTrigger className="w-full h-full">
                   <img

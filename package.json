@@ -57,6 +57,7 @@
     "openai": "^4.33.1",
     "prettier": "^3.2.5",
     "react": "^18",
+    "react-audio-voice-recorder": "^2.2.0",
     "react-chat-elements": "^12.0.14",
     "react-code-blocks": "^0.1.6",
     "react-day-picker": "^8.10.0",
