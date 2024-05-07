@@ -23,11 +23,16 @@ import { Label } from "../ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
 import { Separator } from "../ui/separator";
 import { useToast } from "../ui/use-toast";
+import { SelectItem } from "../ui/select";
+import { nanoid } from "ai";
 
 const formSchema = z
   .object({
@@ -85,6 +90,8 @@ export const SignUpForm = () => {
   }, []);
 
   const onStepChange = (step: string) => {};
+
+  console.log(cities);
 
   return (
     <div className="flex flex-col items-center justify-center w-[50%] gap-5">
@@ -252,19 +259,31 @@ export const SignUpForm = () => {
                 <p className="text-sm">Подтвердите корректность данных</p>
               </li>
             </ol>
-            <div className="flex items-center justify-center w-[70%]">
+            <div className="flex flex-col w-[70%] p-5">
+              <Input placeholder="Фамилия" />
+              <Input placeholder="Имя" />
               <Select>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue>Выберите город...</SelectValue>
+                <SelectTrigger className="w-[180px] text-white">
+                  <SelectValue placeholder="Выберите город..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {cities.map((city) => {
-                    return (
-                      <SelectValue key={city} value={city}>
-                        {city}
-                      </SelectValue>
-                    );
-                  })}
+                <SelectContent side="bottom">
+                  <SelectGroup>
+                    <SelectLabel className="text-xl text-center">
+                      Города
+                    </SelectLabel>
+                    <SelectSeparator className="w-full" />
+                    {cities.map((city) => {
+                      return (
+                        <SelectItem
+                          key={nanoid()}
+                          className="text-center"
+                          value={city.toString()}
+                        >
+                          {city}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
