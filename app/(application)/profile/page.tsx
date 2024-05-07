@@ -10,13 +10,19 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Toaster } from "@/components/ui/toaster";
 import {
   Popover,
-  PopoverTrigger,
   PopoverContent,
+  PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Toaster } from "@/components/ui/toaster";
 import {
   Tooltip,
   TooltipContent,
@@ -27,21 +33,25 @@ import { toast } from "@/components/ui/use-toast";
 import { INITIAL_USER } from "@/constants";
 import {
   changeUserImage,
+  changeUserProfileInfo,
   changeUserStatus,
   getFriendProfile,
   getUser,
   getUserFriends,
   getUserFriendsById,
 } from "@/lib/firebase";
-import { IUser } from "@/types";
+import { IProfileInfo, IUser } from "@/types";
+import { Select } from "@radix-ui/react-select";
 import { nanoid } from "ai";
+import { ru } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
+import "react-day-picker/dist/style.css";
 import { FileWithPath, useDropzone } from "react-dropzone";
 import Emoji from "react-emoji-render";
 import { BiArrowBack, BiLandscape } from "react-icons/bi";
 import { IoPencilSharp } from "react-icons/io5";
-import { CalendarIcon } from "lucide-react";
 
 export default function ProfilePage() {
   const [currentUser, setCurrentUser] = useState<IUser>(INITIAL_USER);
@@ -58,6 +68,12 @@ export default function ProfilePage() {
   const [isViewerVisible, setIsViewerVisible] = useState(false);
   const [date, setDate] = useState(new Date());
   const [status, setStatus] = useState("");
+  const [newUserInfo, setNewUserInfo] = useState<IProfileInfo>({
+    phone: "",
+    birth_date: "",
+    status: "",
+    city: "",
+  });
 
   useEffect(() => {
     setTimeout(() => {
@@ -133,6 +149,27 @@ export default function ProfilePage() {
 
     await fetchUserProfile();
   };
+
+  const onChangeProfileInfo = async () => {
+    await changeUserProfileInfo(newUserInfo);
+    await fetchUserProfile();
+    setIsEditOpen(false);
+    setNewUserInfo({
+      phone: "",
+      birth_date: "",
+      status: "",
+      city: "",
+    });
+  };
+
+  useEffect(() => {
+    if (date)
+      setNewUserInfo({
+        ...newUserInfo,
+        birth_date: date.toLocaleDateString("ru-RU"),
+      });
+    console.log(newUserInfo);
+  }, [date]);
 
   return (
     <div className="flex flex-col items-center p-3">
@@ -240,10 +277,13 @@ export default function ProfilePage() {
                       "Не указано"}
                   </p>
                   <p>
-                    <b className="mr-2">Телефон:</b> +7 900 000-00-00
+                    <b className="mr-2">Телефон:</b>
+                    {(currentUser.info && currentUser?.info.phone) ||
+                      "Не указано"}
                   </p>
                   <p>
-                    <b className="mr-2">Статус:</b> Работаю
+                    <b className="mr-2">Сейчас:</b>{" "}
+                    {(currentUser.info && currentUser?.info.is_online) || "O_O"}
                   </p>
                   {isUserProfile && (
                     <Button
@@ -356,9 +396,53 @@ export default function ProfilePage() {
             <DialogTitle>Редактирование информации</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-5">
-            <Input placeholder="Город" />
-            <Input placeholder="Телефон" />
-            <Input placeholder="Статус" />
+            <Input
+              placeholder="Город"
+              onChange={(e) => {
+                setNewUserInfo({ ...newUserInfo, city: e.target.value });
+              }}
+            />
+            <Input
+              placeholder="Телефон"
+              onChange={(e) =>
+                setNewUserInfo({ ...newUserInfo, phone: e.target.value })
+              }
+            />
+            <Select
+              onValueChange={(e) =>
+                setNewUserInfo({ ...newUserInfo, status: e })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Вы сейчас" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="В сети">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="rounded-full h-3 w-3 bg-green-400"></div>
+                    <span>В сети</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Не в сети">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="rounded-full h-3 w-3 bg-gray-400"></div>
+                    <span>Не в сети</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Занят">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="rounded-full h-3 w-3 bg-red-600"></div>
+                    <span>Занят</span>
+                  </div>
+                </SelectItem>
+                <SelectItem value="Отошёл">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="rounded-full h-3 w-3 bg-yellow-400"></div>
+                    <span>Отошёл</span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
             <Label>Дата рождения:</Label>
             <Popover>
               <PopoverTrigger asChild>
@@ -376,14 +460,17 @@ export default function ProfilePage() {
                   mode="single"
                   selected={date}
                   onSelect={setDate}
-                  lang="ru"
+                  locale={ru}
+                  captionLayout="dropdown-buttons"
                   initialFocus
+                  fromYear={1900}
+                  toYear={new Date().getFullYear()}
                 />
               </PopoverContent>
             </Popover>
           </div>
           <div className="flex flex-col gap-4 py-4">
-            <Button onClick={onHandleSave}>Сохранить</Button>
+            <Button onClick={onChangeProfileInfo}>Сохранить</Button>
           </div>
         </DialogContent>
       </Dialog>

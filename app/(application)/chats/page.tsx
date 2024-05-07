@@ -157,7 +157,6 @@ export default function ChatsPage() {
 
   const onCreateGroupChat = async () => {
     if (selectedGroupMembers.length < 3) {
-      console.log("fail");
       toast({
         title: "❌ Вы должны выбрать хотя бы 2 человек!",
         description: "Выберите их из списка своих друзей",

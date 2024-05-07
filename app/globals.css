@@ -48,7 +48,7 @@
     --ring: 224.3 76.3% 48%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
@@ -60,37 +60,37 @@
 
 @keyframes slideInFromLeft {
   from {
-     /* transform: translateX(-100%); */
-     opacity: 0;
+    /* transform: translateX(-100%); */
+    opacity: 0;
   }
   to {
-     /* transform: translateX(0); */
-     opacity: 1;
+    /* transform: translateX(0); */
+    opacity: 1;
   }
- }
- 
- @keyframes slideInFromRight {
-  from {
-     /* transform: translateX(100%); */
-     opacity: 0;
-  }
-  to {
-     /* transform: translateX(0); */
-     opacity: 1;
-  }
- }
- 
- .slide-in-left {
-  animation: slideInFromLeft 1.5s ease-out forwards;
- }
- 
- .slide-in-right {
-  animation: slideInFromRight 1.5s ease-out forwards;
- }
+}
 
- * {
+@keyframes slideInFromRight {
+  from {
+    /* transform: translateX(100%); */
+    opacity: 0;
+  }
+  to {
+    /* transform: translateX(0); */
+    opacity: 1;
+  }
+}
+
+.slide-in-left {
+  animation: slideInFromLeft 1.5s ease-out forwards;
+}
+
+.slide-in-right {
+  animation: slideInFromRight 1.5s ease-out forwards;
+}
+
+* {
   scroll-behavior: smooth;
   scrollbar-width: thin;
-  scrollbar-color: #5555FF #000000;
+  scrollbar-color: #5555ff #000000;
   scroll-snap-type: mandatory;
- }
+}

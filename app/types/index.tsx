@@ -68,3 +68,20 @@ export type IMessage = {
   content: string;
   date: string;
 };
+
+export type IProfileInfo = {
+  birth_date: string;
+  city: string;
+  phone: string;
+  status: string;
+};
+
+export type IUserStatus = {
+  status: string;
+};
+
+const UserStatuses = {
+  online: "В сети",
+  offline: "Не в сети",
+  busy: "Не беспокоить",
+};

@@ -579,9 +579,9 @@ export default function PhotosPage() {
             </CardContent>
           </Card>
           <Dialog open={isAlbumOpen} onOpenChange={setIsAlbumOpen}>
-            <DialogContent className="w-[40vw]">
+            <DialogContent className="min-w-[50vw]">
               <DialogHeader>{selectedAlbum.title}</DialogHeader>
-              <div className="grid grid-cols-3 gap-5">
+              <div className="grid grid-cols-4 gap-5">
                 {selectedAlbum.images ? (
                   selectedAlbum.images.map((image: IUserImage) => {
                     return (

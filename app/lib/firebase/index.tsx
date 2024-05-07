@@ -1,5 +1,5 @@
 "use client";
-import { IGroupChat, IUserPhotos } from "@/types";
+import { IGroupChat, IProfileInfo, IUserPhotos } from "@/types";
 import { nanoid } from "ai";
 import {
   DocumentData,
@@ -16,7 +16,13 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { ref, uploadBytes } from "firebase/storage";
+import {
+  ListResult,
+  getDownloadURL,
+  listAll,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
 import { db, storage } from "./config";
 
 const storageUserId =
@@ -51,6 +57,7 @@ export const createUserDocument = async (
         birth_date: birthDate,
         city: "",
         status: "",
+        phone: "",
       },
       is_online: true,
       friends: [],
@@ -59,6 +66,7 @@ export const createUserDocument = async (
         user_images: [],
       },
       post_ids: [],
+      tracks: [],
     });
 
     //await addDoc(collection(db, `users/${userId}/chats`), {});
@@ -102,9 +110,15 @@ export const getUsersProfileInfo = async () => {
   return usersData;
 };
 
-export const changeUserProfileInfo = async () => {
+export const changeUserProfileInfo = async (profileInfo: IProfileInfo) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
+
+  for (const key in profileInfo) {
+    if (profileInfo[key] !== "") {
+      await updateDoc(userRef, { [key]: profileInfo[key] });
+    }
+  }
 };
 
 export const changeUserStatus = async (status: string) => {
@@ -395,7 +409,6 @@ export const deleteUserImage = async (index: number) => {
 
   await updateDoc(userRef, { photos });
 };
-
 export const initChats = async () => {
   const chatsRef = collection(db, `users/${storageUserId}/chats`);
   const querySnapshot = await getDocs(chatsRef);
@@ -497,4 +510,34 @@ export const deleteMessage = async (
 
   messages.splice(messageIndex, 1);
   chatDoc.ref.update({ messages });
+};
+
+export const addTrackToStorage = async (file: File, url: string) => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  await updateDoc(userRef, {
+    tracks: arrayUnion({ url: url, title: file.name }),
+  });
+
+  const fileRef = ref(storage, `users/${storageUserId}/music/${file.name}`);
+  await uploadBytes(fileRef, file).then(() =>
+    console.log(`${file.name} added`)
+  );
+};
+
+export const getUserTracks = async () => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+  const tracks = userDoc.data().tracks;
+
+  const userStorage = ref(storage, `users/${storageUserId}/music`);
+  const storageList = await listAll(userStorage);
+
+  const result = await Promise.all(
+    storageList.items.map(async (item, index) => {
+      const trackUrl = await getDownloadURL(ref(userStorage, item.name));
+      return { fileUrl: trackUrl, ...tracks[index] };
+    })
+  );
+
+  return result;
 };

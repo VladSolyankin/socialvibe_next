@@ -30,7 +30,14 @@ import {
 } from "@/components/ui/tooltip";
 import { Music, Plus, Volume, Volume1, Volume2 } from "lucide-react";
 import { nanoid } from "nanoid";
-import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  useCallback,
+  ChangeEvent,
+} from "react";
 import Emoji from "react-emoji-render";
 import {
   IoIosSkipBackward,
@@ -47,8 +54,11 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type SliderProps = React.ComponentProps<typeof Slider>;
+import { BiLandscape } from "react-icons/bi";
+import { FileWithPath, useDropzone } from "react-dropzone";
+import { addTrackToStorage, getUserTracks } from "@/lib/firebase";
+import { Toaster } from "@/components/ui/toaster";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function MusicPage({ ...props }) {
   const [playlists, setPlaylists] = useState({});
@@ -60,16 +70,31 @@ export default function MusicPage({ ...props }) {
   const [isPlayerVisible, setIsPlayerVisible] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [currentTrack, setCurrentTrack] = useState({});
+  const [currentUserTrack, setCurrentUserTrack] = useState({});
   const [currentTrackProgress, setCurrentTrackProgress] = useState(0);
   const [sliderValue, setSliderValue] = useState(0);
+  const [isTrackDialogOpen, setIsAddTrackDialogOpen] = useState(false);
+  const [isFileSelected, setIsFileSelected] = useState(false);
+  const [selectedFileURL, setSelectedFileURL] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File>();
+  const [userTracks, setUserTracks] = useState([]);
   const audioRef = useRef<HTMLAudioElement | undefined>(
     typeof Audio !== "undefined" ? new Audio("") : undefined
   );
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchPlaylists();
     fetchPopularTracks();
+    fetchUserTracks();
   }, []);
+
+  useEffect(() => {
+    if (isPlaying) {
+      updateProgress();
+    }
+  }, [isPlaying]);
+
   const fetchPlaylists = async () => {
     const playlists = await getPlaylists("playlists").then((res) =>
       setPlaylists(res)
@@ -85,6 +110,11 @@ export default function MusicPage({ ...props }) {
     await getPopularTracks()
       .then((res) => res.filter((item) => item.preview_url))
       .then((data) => setPopularTracks(data));
+  };
+
+  const fetchUserTracks = async () => {
+    const userTracks = await getUserTracks();
+    setUserTracks(() => userTracks);
   };
 
   const onPlaylistOpen = (playlist, index) => {
@@ -130,11 +160,50 @@ export default function MusicPage({ ...props }) {
     }
   };
 
-  useEffect(() => {
-    if (isPlaying) {
-      updateProgress();
+  const onDrop = useCallback((files: FileWithPath[]) => {
+    setIsFileSelected(true);
+    files.forEach((file) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedFileURL(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    accept: {
+      "image/*": [".png", ".jpg", ".jpeg", ".svg"],
+    },
+  });
+
+  const onAddTrackDialogOpen = () => setIsAddTrackDialogOpen(true);
+
+  const onAddTrack = async () => {
+    if (!selectedFile) {
+      toast({
+        title: "❌ Вы не выбрали файл!",
+        description: "Выберите файл для добавления",
+        variant: "destructive",
+      });
+      return;
     }
-  }, [isPlaying]);
+
+    if (selectedFile) await addTrackToStorage(selectedFile, selectedFileURL);
+    setIsAddTrackDialogOpen(false);
+    setSelectedFileURL(null);
+  };
+
+  const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const onPlayUserTrack = () => {};
+
+  console.log(userTracks);
 
   return (
     <div className="min-w-[700px] min-h-screen mx-3 max-w-xl">
@@ -153,13 +222,40 @@ export default function MusicPage({ ...props }) {
             className="flex flex-col h-full mt-5 mx-2 gap-5"
           >
             <div className="flex justify-end">
-              <Button variant="outline" className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex gap-3"
+                onClick={onAddTrackDialogOpen}
+              >
                 <Music className="w-4 h-4" />
                 <span className="text-blue-500">Добавить трек</span>
               </Button>
             </div>
-            <div>
+            <div className="flex flex-col gap-5">
               <Label className="text-lg">Мои треки</Label>
+              <div className="flex">
+                {userTracks &&
+                  userTracks.map((track, index) => (
+                    <Card
+                      key={nanoid()}
+                      className="flex flex-col items-center justify-center w-full text-center p-3"
+                      onClick={() => {
+                        setCurrentUserTrack(track);
+                        onPlayUserTrack();
+                      }}
+                    >
+                      <CardContent className="flex items-center w-full justify-between p-0">
+                        <img
+                          src={`${track.url || "/default_music.png"}`}
+                          alt=""
+                          className="w-10 h-10 object-fill rounded-xl"
+                        />
+                        <Label>{track.title}</Label>
+                        <audio src={track.fileUrl} ref={audioRef} controls />
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
             </div>
           </TabsContent>
           <TabsContent
@@ -204,7 +300,7 @@ export default function MusicPage({ ...props }) {
             </Carousel>
 
             <Label>Популярные треки</Label>
-            <Carousel className="w-full">
+            <Carousel className="w-full mb-5">
               <CarouselContent>
                 {popularTracks ? (
                   Array.from({
@@ -417,7 +513,45 @@ export default function MusicPage({ ...props }) {
             <></>
           )}
         </Tabs>
+
+        <Dialog open={isTrackDialogOpen} onOpenChange={setIsAddTrackDialogOpen}>
+          <DialogContent className="flex flex-col justify-center">
+            <DialogHeader>🪩 Добавьте новый трек</DialogHeader>
+            <div className="flex flex-col items-center justify-center gap-4 py-4">
+              <div
+                className="h-24 w-24 border-4 border-dashed rounded-full flex flex-col items-center justify-center"
+                {...getRootProps()}
+              >
+                <input type="file" id="files" {...getInputProps()} />
+                <div
+                  className={`${
+                    isFileSelected ? "hidden" : "block"
+                  } flex flex-col items-center`}
+                >
+                  <BiLandscape className="w-12 h-12" />
+                </div>
+                <img
+                  src={selectedFileURL}
+                  className={`${
+                    isFileSelected ? "block" : "hidden"
+                  } w-full h-full object-fill rounded-full p-1`}
+                />
+              </div>
+              <Label>Выберите изображение</Label>
+            </div>
+            <div className="grid items-center gap-3">
+              <Label>Файл</Label>
+              <Input
+                type="file"
+                accept=".mp3,.wav"
+                onChange={(e) => onFileChange(e)}
+              />
+            </div>
+            <Button onClick={onAddTrack}>Добавить</Button>
+          </DialogContent>
+        </Dialog>
       </div>
+      <Toaster />
     </div>
   );
 }
