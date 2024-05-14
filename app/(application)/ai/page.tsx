@@ -32,12 +32,6 @@ interface Message {
   content: string;
 }
 
-interface Props {
-  messages: Message[];
-  handleSubmit: () => void;
-  handleInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  input: string;
-}
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat();
   const [generatedImage, setGeneratedImage] = useState("");

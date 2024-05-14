@@ -7,19 +7,24 @@ import {
 } from "@/components/ui/form";
 import { useUserContext } from "@/context/AuthContext";
 import { useLoading } from "@/hooks/useLoading";
+import { changeUserOnline, getAllUsers } from "@/lib/firebase";
+import { auth } from "@/lib/firebase/config";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  sendPasswordResetEmail,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { Key, Mail } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "../ui/button";
-import { Icons } from "../ui/icons";
+import { Dialog, DialogContent, DialogHeader } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { Separator } from "../ui/separator";
 import { toast } from "../ui/use-toast";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
-import { useRouter } from "next/navigation";
-import { changeUserOnline } from "@/lib/firebase";
 
 const formSchema = z.object({
   email: z
@@ -33,6 +38,8 @@ const formSchema = z.object({
 });
 
 export const SignInForm = () => {
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const { isLoading, onSubmit } = useLoading();
   const { isAuthenticated } = useUserContext();
   const router = useRouter();
@@ -41,7 +48,6 @@ export const SignInForm = () => {
   };
 
   if (isAuthenticated) {
-    console.log(`${localStorage.getItem("userAuth")} logged in`);
     pageNavigator("/");
   }
 
@@ -77,6 +83,29 @@ export const SignInForm = () => {
 
   const onFormSubmit = (values: z.infer<typeof formSchema>) => {
     onUserSignIn(values.email, values.password);
+  };
+
+  const onPasswordReset = () => {
+    setResetDialogOpen(true);
+  };
+
+  const onSendResetEmail = async () => {
+    auth.languageCode = "ru";
+    const userEmails = (await getAllUsers()).map((user) => user.email);
+    if (userEmails.includes(resetEmail)) {
+      await sendPasswordResetEmail(auth, resetEmail).then(() => {
+        toast({
+          title: "✅ Письмо отправлено",
+          description: "Проверьте ваш почтовый ящик",
+        });
+        setResetDialogOpen(false);
+      });
+    } else {
+      toast({
+        title: "❌ Письмо не отправлено",
+        description: "Проверьте корректность введённых данных",
+      });
+    }
   };
 
   return (
@@ -119,21 +148,16 @@ export const SignInForm = () => {
           <Button type="submit">Войти</Button>
           <div className="flex items-center justify-center gap-3">
             <Separator className="w-24" />
-            <Label className="text-md">Или, войдите с помощью </Label>
+            <Label className="text-md">Забыли пароль?</Label>
             <Separator className="w-24" />
           </div>
           <Button
             variant="outline"
             type="button"
             disabled={isLoading}
-            onClick={onSubmit}
+            onClick={onPasswordReset}
           >
-            {isLoading ? (
-              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Icons.google className="mr-2 h-4 w-4" />
-            )}{" "}
-            Gmail
+            <Mail className="mr-2 h-4 w-4" /> Сброс пароля
           </Button>
         </form>
       </Form>
@@ -144,6 +168,27 @@ export const SignInForm = () => {
       >
         Ещё нет аккаунта?
       </Button>
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent className="flex flex-col gap-5 p-3">
+          <DialogHeader className="gap-3">
+            <div className="flex items-center gap-1">
+              <Key className="mr-2 h-4 w-4" />
+              <span>Сбросить пароль от аккаунта</span>
+            </div>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 items-center">
+            <Input
+              placeholder="Введите ваш логин (email)..."
+              onChange={(e) => {
+                setResetEmail(e.target.value);
+              }}
+            />
+            <div>
+              <Button onClick={onSendResetEmail}>Отправить письмо</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -71,7 +71,7 @@ export default function ProfilePage() {
   const [newUserInfo, setNewUserInfo] = useState<IProfileInfo>({
     phone: "",
     birth_date: "",
-    status: "",
+    currentStatus: "",
     city: "",
   });
 
@@ -122,12 +122,12 @@ export default function ProfilePage() {
   });
 
   const onHandleSave = async () => {
-    changeUserImage(selectedFileURL as string);
-    await fetchUserProfile();
+    await changeUserImage(selectedFileURL as string);
     setIsProfileChangeOpen(false);
     setIsFileSelected(false);
     setSelectedFile(undefined);
     setSelectedFileURL(undefined);
+    fetchUserProfile();
   };
 
   const onStatusChange = async (newStatus: string) => {
@@ -157,7 +157,7 @@ export default function ProfilePage() {
     setNewUserInfo({
       phone: "",
       birth_date: "",
-      status: "",
+      currentStatus: "",
       city: "",
     });
   };
@@ -169,6 +169,7 @@ export default function ProfilePage() {
         birth_date: date.toLocaleDateString("ru-RU"),
       });
     console.log(newUserInfo);
+    console.log(date);
   }, [date]);
 
   return (
@@ -267,23 +268,26 @@ export default function ProfilePage() {
                       </Button>
                     )}
                     <Label className="text-sm text-gray-400">
-                      {currentUser.info && currentUser?.info.status}
+                      {currentUser && currentUser?.status}
                     </Label>
                   </div>
                   <Separator />
                   <p>
                     <b className="mr-2">Город:</b>{" "}
-                    {(currentUser.info && currentUser?.info.city) ||
-                      "Не указано"}
+                    {(currentUser && currentUser?.city) || "Не указано"}
                   </p>
                   <p>
                     <b className="mr-2">Телефон:</b>
-                    {(currentUser.info && currentUser?.info.phone) ||
-                      "Не указано"}
+                    {(currentUser && currentUser?.phone) || "Не указано"}
+                  </p>
+                  <p>
+                    <b className="mr-2">Дата рождения:</b>
+                    {(currentUser && currentUser?.birth_date) || "Не указано"}
                   </p>
                   <p>
                     <b className="mr-2">Сейчас:</b>{" "}
-                    {(currentUser.info && currentUser?.info.is_online) || "O_O"}
+                    {(currentUser && currentUser?.currentStatus) ||
+                      "Когда-нибудь вернётся..."}
                   </p>
                   {isUserProfile && (
                     <Button
@@ -404,13 +408,15 @@ export default function ProfilePage() {
             />
             <Input
               placeholder="Телефон"
+              type="tel"
+              pattern="+7[0-9]{3}[0-9]{3}[0-9]{4}"
               onChange={(e) =>
                 setNewUserInfo({ ...newUserInfo, phone: e.target.value })
               }
             />
             <Select
               onValueChange={(e) =>
-                setNewUserInfo({ ...newUserInfo, status: e })
+                setNewUserInfo({ ...newUserInfo, currentStatus: e })
               }
             >
               <SelectTrigger>
@@ -420,13 +426,7 @@ export default function ProfilePage() {
                 <SelectItem value="В сети">
                   <div className="flex items-center justify-center gap-2">
                     <div className="rounded-full h-3 w-3 bg-green-400"></div>
-                    <span>В сети</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="Не в сети">
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="rounded-full h-3 w-3 bg-gray-400"></div>
-                    <span>Не в сети</span>
+                    <span>Свободен</span>
                   </div>
                 </SelectItem>
                 <SelectItem value="Занят">

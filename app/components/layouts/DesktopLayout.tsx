@@ -34,6 +34,15 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
     router.push(path);
   };
 
+  const isAuth =
+    typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
+
+  useEffect(() => {
+    if (!isAuth) {
+      router.replace("/login");
+    }
+  }, []);
+
   useEffect(() => {
     if (
       typeof window !== "undefined" ? localStorage.getItem("isLogged") : false
@@ -77,7 +86,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
         <SheetTrigger>
           <IoMenu className="fixed top-10 left-10 h-10 w-10" />
         </SheetTrigger>
-        <SheetContent>
+        <SheetContent side={"left"}>
           <SheetHeader className="flex flex-row items-center gap-2">
             <div className="flex flex-col items-center relative">
               <img
@@ -164,7 +173,7 @@ export const DesktopLayout = ({ children }: { children: React.ReactNode }) => {
             </ul>
           </div>
           <Button
-            className="fixed bottom-5 right-5"
+            className="absolute bottom-5 left-5"
             variant="destructive"
             onClick={() => onUserLogout()}
           >

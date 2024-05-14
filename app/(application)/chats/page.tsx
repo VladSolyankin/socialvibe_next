@@ -26,17 +26,9 @@ import {
   sendMessage,
 } from "@/lib/firebase";
 import { IUser } from "@/types";
-import {
-  ChevronDown,
-  CornerDownLeft,
-  File,
-  Paperclip,
-  Users,
-  Video,
-} from "lucide-react";
+import { ChevronDown, CornerDownLeft, File, Users, Video } from "lucide-react";
 import { nanoid } from "nanoid";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { AudioRecorder } from "react-audio-voice-recorder";
 import { ChatItem } from "react-chat-elements";
 import "react-chat-elements/dist/main.css";
 import { FileWithPath, useDropzone } from "react-dropzone";
@@ -60,6 +52,9 @@ export default function ChatsPage() {
   const [isChatMediaOpen, setIsChatMediaOpen] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
 
+  const isAuth =
+    typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
+
   useEffect(() => {
     fetchedFriends();
   }, []);
@@ -69,6 +64,15 @@ export default function ChatsPage() {
   }, []);
 
   useEffect(() => scrollToBottom(), [userChats]);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const fetchedChats = await getChats();
+      setUserChats(() => fetchedChats);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const initializeChats = async () => {
     await initChats();
@@ -138,7 +142,7 @@ export default function ChatsPage() {
 
   const onAddNewChat = async () => {
     setIsNewChatDialog(true);
-    setSelectedGroupMembers([localStorage.getItem("userAuth")]);
+    setSelectedGroupMembers([isAuth]);
   };
 
   const onSelectGroupMember = async (id: string) => {
@@ -311,14 +315,14 @@ export default function ChatsPage() {
                     <div
                       key={nanoid()}
                       className={`flex ${
-                        message.sender === localStorage.getItem("userAuth")
+                        message.sender === isAuth
                           ? "justify-end"
                           : "justify-start"
                       } mb-2 pr-3`}
                     >
                       <div
                         className={`min-w-[100px] relative max-w-[70%] text-white p-4 pb-6 rounded-md break-words ${
-                          message.sender === localStorage.getItem("userAuth")
+                          message.sender === isAuth
                             ? "bg-blue-600 text-right"
                             : "bg-purple-600 text-left"
                         }`}
@@ -356,16 +360,6 @@ export default function ChatsPage() {
               />
               <div className="flex items-center p-3 pt-0">
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setIsChatMediaOpen(true)}
-                    >
-                      <Paperclip className="size-4" />
-                      <span className="sr-only">Прикрепить файл</span>
-                    </Button>
-                  </DropdownMenuTrigger>
                   <Button
                     size="sm"
                     className="ml-auto gap-1.5"
@@ -387,25 +381,6 @@ export default function ChatsPage() {
                     </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
-              <div className="absolute top-3 right-3">
-                <AudioRecorder
-                  classes={{
-                    AudioRecorderClass: "h-6",
-                  }}
-                  onRecordingComplete={onRecordAudioMessage}
-                  audioTrackConstraints={{
-                    noiseSuppression: true,
-                    echoCancellation: true,
-                  }}
-                  onNotAllowedOrFound={(err) => console.table(err)}
-                  downloadOnSavePress={false}
-                  downloadFileExtension="mp3"
-                  mediaRecorderOptions={{
-                    audioBitsPerSecond: 128000,
-                  }}
-                  showVisualizer={true}
-                />
               </div>
             </div>
           </div>

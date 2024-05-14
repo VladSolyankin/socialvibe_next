@@ -1,5 +1,12 @@
 "use client";
-import { IGroupChat, IProfileInfo, IUserPhotos } from "@/types";
+import {
+  IGroupChat,
+  IProfileInfo,
+  IUser,
+  IUserPersonalInfo,
+  IUserPhotos,
+  IUserPost,
+} from "@/types";
 import { nanoid } from "ai";
 import {
   DocumentData,
@@ -7,6 +14,7 @@ import {
   arrayRemove,
   arrayUnion,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -17,19 +25,20 @@ import {
   where,
 } from "firebase/firestore";
 import {
-  ListResult,
+  deleteObject,
   getDownloadURL,
   listAll,
   ref,
   uploadBytes,
 } from "firebase/storage";
-import { db, storage } from "./config";
+import { auth, db, storage } from "./config";
+import { FirebaseError } from "firebase/app";
 
 const storageUserId =
   typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
 
 export const getAllUsers = async () => {
-  const users = [];
+  const users: IUser[] = [];
   const usersSnapshot = await getDocs(query(collection(db, "users")));
 
   usersSnapshot.forEach((user) => {
@@ -38,31 +47,24 @@ export const getAllUsers = async () => {
 
   return users;
 };
-export const createUserDocument = async (
-  userId: string | undefined,
-  fullName: string,
-  userEmail: string,
-  birthDate: string,
-  city?: string
-) => {
+export const createUserDocument = async (userInfo: IUserPersonalInfo) => {
   try {
     console.log("creating user");
-    await setDoc(doc(db, `users/${userId}`), {
-      id: userId,
-      registration_date: Date.now().toLocaleString("ru-RU"),
-      avatar_url: "",
-      email: userEmail,
-      full_name: fullName,
-      info: {
-        birth_date: birthDate,
-        city: "",
-        status: "",
-        phone: "",
-      },
+    await setDoc(doc(db, `users/${auth.currentUser?.uid}`), {
+      id: auth.currentUser?.uid,
+      registration_date: new Date(Date.now()).toLocaleString("ru-RU"),
+      avatar_url: userInfo.avatar_url,
+      email: userInfo.email,
+      full_name: userInfo.firstName + " " + userInfo.lastName,
+      birth_date: userInfo.birthDate,
+      city: userInfo.city,
+      status: "",
+      currentStatus: "",
+      phone: userInfo.phone,
       is_online: true,
       friends: [],
       photos: {
-        albums: {},
+        albums: [],
         user_images: [],
       },
       post_ids: [],
@@ -112,11 +114,12 @@ export const getUsersProfileInfo = async () => {
 
 export const changeUserProfileInfo = async (profileInfo: IProfileInfo) => {
   const userRef = doc(db, `users/${storageUserId}`);
-  const userDoc = await getDoc(userRef);
 
   for (const key in profileInfo) {
-    if (profileInfo[key] !== "") {
-      await updateDoc(userRef, { [key]: profileInfo[key] });
+    if (profileInfo[key as keyof IProfileInfo] !== "") {
+      await updateDoc(userRef, {
+        [key]: profileInfo[key as keyof IProfileInfo],
+      });
     }
   }
 };
@@ -125,10 +128,10 @@ export const changeUserStatus = async (status: string) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userStatus = userDoc.data().info.status;
+  const userStatus = userDoc.data()?.status;
 
   if (userStatus !== status) {
-    await updateDoc(userRef, { "info.status": status });
+    await updateDoc(userRef, { status: status });
     return true;
   } else {
     return false;
@@ -139,7 +142,7 @@ export const changeUserImage = async (imageUrl: string) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userImage = userDoc.data().avatar_url;
+  const userImage = userDoc.data()?.avatar_url;
 
   if (userImage !== imageUrl) {
     await updateDoc(userRef, { avatar_url: imageUrl });
@@ -152,7 +155,7 @@ export const changeUserOnline = async (isOnline: boolean) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userIsOnline = userDoc.data().is_online;
+  const userIsOnline = userDoc.data()?.is_online;
 
   await updateDoc(userRef, { is_online: isOnline });
 };
@@ -161,7 +164,7 @@ export const addUserFriend = async (id: string) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userFriends = userDoc.data().friends;
+  const userFriends = userDoc.data()?.friends;
 
   userFriends.push(id);
 
@@ -172,7 +175,7 @@ export const deleteUserFriend = async (id: string) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userFriends = userDoc.data().friends;
+  const userFriends = userDoc.data()?.friends;
 
   const filter = userFriends.filter((friendId: string) => friendId !== id);
 
@@ -183,7 +186,7 @@ export const getUserFriends = async () => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const friendsIds = userDoc.data().friends;
+  const friendsIds = userDoc.data()?.friends;
 
   const friendsPromises = friendsIds.map((id) =>
     getDoc(doc(db, `/users/${id}`))
@@ -200,7 +203,7 @@ export const getUserFriendsById = async (id: string) => {
   const userRef = doc(db, `users/${id}`);
   const userDoc = await getDoc(userRef);
 
-  const friendsIds = userDoc.data().friends;
+  const friendsIds = userDoc.data()?.friends;
 
   const friendsPromises = friendsIds.map((id) =>
     getDoc(doc(db, `/users/${id}`))
@@ -254,21 +257,33 @@ export const createUserPost = async (post) => {
     date: serverTimestamp(),
     content: post.content,
     users_liked: [],
+    user_id: storageUserId,
   };
 
   await addDoc(userRef, newPost);
 };
 
-export const addPostComment = async (postId: string, comment) => {
-  console.log(postId);
-  const post = await getDocs(
+export const deleteUserPost = async (post) => {
+  const posts = await getDocs(collection(db, `users/${storageUserId}/posts`));
+
+  const updatedPosts = posts.docs.filter((doc) => doc.data().id == post.id);
+
+  updatedPosts.forEach(async (document) => {
+    await deleteDoc(
+      doc(collection(db, `users/${storageUserId}/posts`), document.id)
+    );
+  });
+};
+
+export const addPostComment = async (post: IUserPost, comment) => {
+  const userPost = await getDocs(
     query(
-      collection(db, `users/${storageUserId}/posts`),
-      where("id", "==", postId)
+      collection(db, `users/${post.user_id}/posts`),
+      where("id", "==", post.id)
     )
   );
 
-  post.forEach((doc) => {
+  userPost.forEach((doc) => {
     updateDoc(doc.ref, {
       comments: arrayUnion(comment),
     });
@@ -288,17 +303,17 @@ export const getPostComments = async (postId: string) => {
   });
 };
 
-export const changePostLikeCount = async (postId: string, add: boolean) => {
+export const changePostLikeCount = async (likedPost: string, add: boolean) => {
   const post = await getDocs(
     query(
-      collection(db, `users/${storageUserId}/posts`),
-      where("id", "==", postId)
+      collection(db, `users/${likedPost.user_id}/posts`),
+      where("id", "==", likedPost.id)
     )
   );
 
   const likedDoc = post.docs[0];
   const likeCount = post.docs[0].data().likes;
-  const userRef = doc(db, `users/${storageUserId}/posts/${likedDoc.id}`);
+  const userRef = doc(db, `users/${likedPost.user_id}/posts/${likedDoc.id}`);
 
   likedDoc.data().users_liked.includes(storageUserId)
     ? await updateDoc(userRef, { users_liked: arrayRemove(storageUserId) })
@@ -333,7 +348,7 @@ export const addUserImage = async (imageTitle: string, imageUrl: string) => {
     title: imageTitle,
   };
 
-  const photos = userImages.data().photos;
+  const photos = userImages.data()?.photos;
 
   photos.user_images.push(newImage);
 
@@ -344,14 +359,14 @@ export const addUserAlbum = async (albumTitle: string, imageUrl: string) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const photos = userDoc.data().photos;
-
   const newAlbum = {
     title: albumTitle,
     images: [],
     preview: imageUrl,
     date: new Date().toLocaleDateString("ru-RU"),
   };
+
+  const photos = userDoc.data()?.photos;
 
   photos.albums.push(newAlbum);
 
@@ -366,8 +381,8 @@ export const addAlbumImage = async (
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userAlbums = userDoc.data().photos.albums;
-  const userImages = userDoc.data().photos.user_images;
+  const userAlbums = userDoc.data()?.photos.albums;
+  const userImages = userDoc.data()?.photos.user_images;
 
   const newImage = {
     url: imageUrl,
@@ -386,7 +401,7 @@ export const deleteAlbum = async (albumIndex: number) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
 
-  const userAlbums = userDoc.data().photos.albums;
+  const userAlbums = userDoc.data()?.photos.albums;
 
   userAlbums.splice(albumIndex, 1);
 
@@ -403,7 +418,7 @@ export const deleteUserImage = async (index: number) => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userImages = await getDoc(userRef);
 
-  const photos = userImages.data().photos;
+  const photos = userImages.data()?.photos;
 
   photos.user_images.splice(index, 1);
 
@@ -427,10 +442,10 @@ export const initChats = async () => {
           preview: user.avatar_url || "/default_profile.png",
         });
         await setDoc(doc(db, `users/${user.id}/chats/${storageUserId}`), {
-          title: currentUserData.full_name,
+          title: currentUserData?.full_name,
           users: [user.id, storageUserId],
           messages: [],
-          preview: currentUserData.avatar_url || "/default_profile.png",
+          preview: currentUserData?.avatar_url || "/default_profile.png",
         });
       }
     });
@@ -473,22 +488,20 @@ export const sendMessage = async (chatId: string, text: string) => {
     sender: storageUserId,
   };
 
-  const otherUserId = chatDoc.data().users.find((id) => id !== storageUserId);
-  const otherUserChatRef = doc(
-    db,
-    `users/${otherUserId}/chats/${storageUserId}`
+  const otherUsers = chatDoc.data()?.users;
+
+  const otherUserChats = otherUsers.map((userId) => {
+    return doc(db, `users/${userId}/chats/${chatId}`);
+  });
+
+  await Promise.all(
+    otherUserChats.map((chatRef) =>
+      updateDoc(chatRef, {
+        messages: arrayUnion(message),
+      })
+    )
   );
-
-  await Promise.all([
-    updateDoc(chatRef, {
-      messages: arrayUnion(message),
-    }),
-    updateDoc(otherUserChatRef, {
-      messages: arrayUnion(message),
-    }),
-  ]);
 };
-
 export const getChatUsersProfiles = async (users: string[]) =>
   Promise.all(
     users
@@ -524,10 +537,26 @@ export const addTrackToStorage = async (file: File, url: string) => {
   );
 };
 
+export const deleteTrackFromStorage = async (
+  fileName: string,
+  index: number
+) => {
+  const userRef = doc(db, `users/${storageUserId}`);
+  const userDoc = await getDoc(userRef);
+  const storageRef = ref(storage, `users/${storageUserId}/music`);
+  await deleteObject(ref(storageRef, fileName));
+
+  const tracks = userDoc.data()?.tracks;
+  tracks.splice(index, 1);
+  await updateDoc(userRef, {
+    tracks: tracks,
+  });
+};
+
 export const getUserTracks = async () => {
   const userRef = doc(db, `users/${storageUserId}`);
   const userDoc = await getDoc(userRef);
-  const tracks = userDoc.data().tracks;
+  const tracks = userDoc.data()?.tracks;
 
   const userStorage = ref(storage, `users/${storageUserId}/music`);
   const storageList = await listAll(userStorage);

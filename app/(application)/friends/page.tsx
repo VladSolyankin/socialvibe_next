@@ -1,6 +1,7 @@
 "use client";
 import FriendsList from "@/components/pages/friends/FriendsList";
 import PeopleList from "@/components/pages/friends/PeopleList";
+import { Loader } from "@/components/shared/Loader";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,12 +26,19 @@ export default function FriendsPage() {
   const [isAddFriendDialogOpen, setIsAddFriendDialogOpen] = useState(false);
   const [userProfile, setUserProfile] = useState({});
   const [isSearched, setIsSearched] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
     fetchUserProfile();
     fetchUserProfile();
     fetchAllUsers();
     fetchUserFriends();
+  }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 1500);
   }, []);
 
   const onSearchUser = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,10 +64,10 @@ export default function FriendsPage() {
   };
 
   const fetchAllUsers = async () => {
+    const isAuth =
+      typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
     const fetchedUsers = await getAllUsers();
-    const filteredUsers = fetchedUsers.filter(
-      (user) => user.id !== localStorage.getItem("userAuth")
-    );
+    const filteredUsers = fetchedUsers.filter((user) => user.id !== isAuth);
     setUsers(filteredUsers);
   };
 
@@ -116,23 +124,27 @@ export default function FriendsPage() {
               onChange={(e) => onSearchFriends(e)}
             />
             <Card className="flex flex-col h-full p-5">
-              {friends.length > 0 ? (
-                (isSearched ? filteredFriends : friends).length ? (
-                  <FriendsList
-                    friends={isSearched ? filteredFriends : friends}
-                    onDeleteFriend={onDeleteFriend}
-                  />
+              {isLoaded ? (
+                friends.length > 0 ? (
+                  (isSearched ? filteredFriends : friends).length ? (
+                    <FriendsList
+                      friends={isSearched ? filteredFriends : friends}
+                      onDeleteFriend={onDeleteFriend}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <Emoji className="text-5xl">😟</Emoji>
+                      <span>Никого не нашли</span>
+                    </div>
+                  )
                 ) : (
                   <div className="flex flex-col items-center gap-3">
                     <Emoji className="text-5xl">😟</Emoji>
-                    <span>Никого не нашли</span>
+                    <span>У вас нет друзей</span>
                   </div>
                 )
               ) : (
-                <div className="flex flex-col items-center gap-3">
-                  <Emoji className="text-5xl">😟</Emoji>
-                  <span>У вас нет друзей</span>
-                </div>
+                <Loader />
               )}
             </Card>
           </div>

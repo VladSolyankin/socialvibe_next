@@ -47,6 +47,7 @@ import { BiLandscape, BiSolidSave } from "react-icons/bi";
 import { CiCirclePlus } from "react-icons/ci";
 import { FcGenericSortingAsc } from "react-icons/fc";
 import dynamic from "next/dynamic";
+import { Loader } from "@/components/shared/Loader";
 
 const Viewer = dynamic(() => import("react-viewer"), {
   ssr: false,
@@ -70,6 +71,7 @@ export default function PhotosPage() {
   const [isAlbumDialogOpen, setIsAlbumDialogOpen] = useState(false);
   const [isSearched, setIsSearched] = useState(false);
   const [isViewerVisible, setIsViewerVisible] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -79,6 +81,12 @@ export default function PhotosPage() {
   useEffect(() => {
     fetchUserAlbums();
   }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 3000);
+  });
 
   const fetchUserImages = async () => {
     const userImages = await getUserImages();
@@ -202,39 +210,11 @@ export default function PhotosPage() {
       userAlbums?.indexOf(selectedAlbum),
       selectedFileURL,
       addImageTitle
-    );
-    await fetchUserImages();
-  };
-
-  const onSortChange = (sort: string) => {
-    switch (sort) {
-      case "sooner":
-        setUserImages((images) => {
-          return images.sort(
-            (img1, img2) =>
-              new Date(img2.date).getTime() - new Date(img1.date).getTime()
-          );
-        });
-        break;
-
-      case "later":
-        setUserImages((images) => {
-          return images.sort(
-            (img1, img2) =>
-              new Date(img1.date).getTime() - new Date(img2.date).getTime()
-          );
-        });
-        break;
-
-      case "start":
-        break;
-
-      case "end":
-        break;
-
-      default:
-        break;
-    }
+    )
+      .then(() => {
+        fetchUserAlbums();
+      })
+      .catch((err) => console.log(err));
   };
 
   return (
@@ -388,50 +368,6 @@ export default function PhotosPage() {
                 </Dialog>
               </DropdownMenuContent>
             </DropdownMenu>
-            <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  className="flex gap-2"
-                  onClick={() => {}}
-                >
-                  <FcGenericSortingAsc className="w-6 h-6" />
-                  <span>Сортировать</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>По дате создания</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="hover:bg-gray-300"
-                  onClick={() => onSortChange("sooner")}
-                >
-                  Раньше
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="hover:bg-gray-300"
-                  onClick={() => onSortChange("later")}
-                >
-                  Позже
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>По названию</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="hover:bg-gray-300"
-                  onClick={() => onSortChange("start")}
-                >
-                  С начала алфавита
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="hover:bg-gray-300"
-                  onClick={() => onSortChange("end")}
-                >
-                  С конца алфавита
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
             <Dialog open={isImageDialogOpen} onOpenChange={onImageDialogClose}>
               <DialogContent>
                 <Card className="flex flex-col gap-3">
@@ -486,7 +422,8 @@ export default function PhotosPage() {
             <CardHeader>
               <CardTitle>Ваши изображения</CardTitle>
               <CardDescription>
-                Здесь можно просматривать и делиться фотографиями
+                Здесь вы можете управлять своими изображениями. Нажмите на
+                изображение, чтобы посмотреть его
               </CardDescription>
               <Input
                 placeholder="🔍 Найти фотографию..."
@@ -494,48 +431,57 @@ export default function PhotosPage() {
               />
             </CardHeader>
             <CardContent className="grid grid-cols-3 place-content-center gap-x-12 gap-y-16 mx-5">
-              {userImages && userImages.length > 0 ? (
-                userImages && isSearched ? (
-                  filteredImages.map((photo: IUserImage, index) => (
-                    <div key={nanoid()} className="flex flex-col items-center">
-                      <img
-                        className="w-52 h-52 rounded-xl"
-                        src={photo.url}
-                        alt="User photo"
-                        onClick={() => setIsViewerVisible(true)}
-                      />
-                      <Viewer
-                        className="w-40 h-40 rounded-xl"
-                        visible={isViewerVisible}
-                        onClose={() => setIsViewerVisible(false)}
-                        images={[{ src: photo.url }]}
-                      />
-                      <span>{photo.title}</span>
-                    </div>
-                  ))
+              {isLoaded ? (
+                userImages && userImages.length > 0 ? (
+                  userImages && isSearched ? (
+                    filteredImages.map((photo: IUserImage, index) => (
+                      <div
+                        key={nanoid()}
+                        className="flex flex-col items-center"
+                      >
+                        <img
+                          className="w-52 h-52 rounded-xl"
+                          src={photo.url}
+                          alt="User photo"
+                          onClick={() => {
+                            setIsViewerVisible(true);
+                            setSelectedImage(photo.url);
+                          }}
+                        />
+                        <span>{photo.title}</span>
+                      </div>
+                    ))
+                  ) : (
+                    userImages.map((photo, index) => (
+                      <div
+                        key={nanoid()}
+                        className="flex flex-col items-center"
+                      >
+                        <img
+                          className="w-52 h-52 rounded-xl"
+                          src={photo.url}
+                          alt="User photo"
+                          onClick={() => setIsViewerVisible(true)}
+                        />
+                        <Viewer
+                          className="w-40 h-40 rounded-xl"
+                          visible={isViewerVisible}
+                          onClose={() => setIsViewerVisible(false)}
+                          images={[{ src: photo.url }]}
+                        />
+                        <span>{photo.title}</span>
+                      </div>
+                    ))
+                  )
                 ) : (
-                  userImages.map((photo, index) => (
-                    <div key={nanoid()} className="flex flex-col items-center">
-                      <img
-                        className="w-52 h-52 rounded-xl"
-                        src={photo.url}
-                        alt="User photo"
-                        onClick={() => setIsViewerVisible(true)}
-                      />
-                      <Viewer
-                        className="w-40 h-40 rounded-xl"
-                        visible={isViewerVisible}
-                        onClose={() => setIsViewerVisible(false)}
-                        images={[{ src: photo.url }]}
-                      />
-                      <span>{photo.title}</span>
-                    </div>
-                  ))
+                  <div className="flex flex-col items-center col-span-3 mx-auto h-full">
+                    <Emoji className="text-5xl">😟</Emoji>
+                    <span>У вас нет фотографий</span>
+                  </div>
                 )
               ) : (
-                <div className="flex flex-col items-center col-span-3 mx-auto h-full">
-                  <Emoji className="text-5xl">😟</Emoji>
-                  <span>У вас нет фотографий</span>
+                <div className="flex flex-col items-center col-span-3 mx-auto">
+                  <Loader />
                 </div>
               )}
             </CardContent>
@@ -703,6 +649,12 @@ export default function PhotosPage() {
               zIndex={1000}
             />
           )}
+          <Viewer
+            className="w-40 h-40 rounded-xl"
+            visible={isViewerVisible}
+            onClose={() => setIsViewerVisible(false)}
+            images={[{ src: selectedImage }]}
+          />
         </TabsContent>
       </Tabs>
     </div>

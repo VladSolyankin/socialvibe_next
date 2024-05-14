@@ -10,6 +10,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -28,7 +29,16 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { Music, Plus, Volume, Volume1, Volume2 } from "lucide-react";
+import {
+  Cross,
+  Delete,
+  DeleteIcon,
+  Music,
+  Plus,
+  Volume,
+  Volume1,
+  Volume2,
+} from "lucide-react";
 import { nanoid } from "nanoid";
 import {
   useEffect,
@@ -56,9 +66,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BiLandscape } from "react-icons/bi";
 import { FileWithPath, useDropzone } from "react-dropzone";
-import { addTrackToStorage, getUserTracks } from "@/lib/firebase";
+import {
+  addTrackToStorage,
+  deleteTrackFromStorage,
+  getUserTracks,
+} from "@/lib/firebase";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader } from "@/components/shared/Loader";
+import { AiFillCloseCircle } from "react-icons/ai";
 
 export default function MusicPage({ ...props }) {
   const [playlists, setPlaylists] = useState({});
@@ -78,6 +94,12 @@ export default function MusicPage({ ...props }) {
   const [selectedFileURL, setSelectedFileURL] = useState("");
   const [selectedFile, setSelectedFile] = useState<File>();
   const [userTracks, setUserTracks] = useState([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [deleteTrackDialogOpen, setDeleteTrackDialogOpen] = useState(false);
+  const [deleteTrack, setDeleteTrack] = useState({
+    title: "",
+    index: 0,
+  });
   const audioRef = useRef<HTMLAudioElement | undefined>(
     typeof Audio !== "undefined" ? new Audio("") : undefined
   );
@@ -88,6 +110,12 @@ export default function MusicPage({ ...props }) {
     fetchPopularTracks();
     fetchUserTracks();
   }, []);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoaded(true);
+    }, 3000);
+  });
 
   useEffect(() => {
     if (isPlaying) {
@@ -124,6 +152,7 @@ export default function MusicPage({ ...props }) {
   };
 
   const onTrackPlay = (track) => {
+    console.log(track);
     setCurrentTrackProgress(0);
     setIsPlaying(true);
     setCurrentTrack(track);
@@ -132,8 +161,32 @@ export default function MusicPage({ ...props }) {
     setIsPlaylistOpen(false);
   };
 
-  const handleNextTrack = () => {};
-  const handlePrevTrack = () => {};
+  const handleNextTrack = () => {
+    audioRef.current.src = "";
+    setCurrentTrackProgress(0);
+    setIsPlaying(true);
+    if (currentTrackIndex < popularTracks.length - 1) {
+      setCurrentTrackIndex((prev) => prev + 1);
+      setCurrentTrack(popularTracks[currentTrackIndex + 1]);
+    } else {
+      setCurrentTrackIndex(0);
+      setCurrentTrack(popularTracks[0]);
+    }
+    audioRef.current?.play();
+  };
+  const handlePrevTrack = () => {
+    audioRef.current.src = "";
+    setCurrentTrackProgress(0);
+    setIsPlaying(true);
+    if (currentTrackIndex > 0) {
+      setCurrentTrackIndex((prev) => prev - 1);
+      setCurrentTrack(playlistTracks[currentTrackIndex - 1]);
+    } else {
+      setCurrentTrackIndex(playlistTracks.length - 1);
+      setCurrentTrack(playlistTracks[playlistTracks.length - 1]);
+    }
+    audioRef.current?.play();
+  };
   const handlePlayPause = () => {
     if (isPlaying) {
       setIsPlaying(false);
@@ -190,9 +243,15 @@ export default function MusicPage({ ...props }) {
       return;
     }
 
-    if (selectedFile) await addTrackToStorage(selectedFile, selectedFileURL);
+    await addTrackToStorage(selectedFile, selectedFileURL);
     setIsAddTrackDialogOpen(false);
     setSelectedFileURL(null);
+    toast({
+      title: "✅ Трек успешно добавлен!",
+      description: "Трек был успешно добавлен в музыку",
+      variant: "default",
+    });
+    fetchUserTracks();
   };
 
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -201,10 +260,21 @@ export default function MusicPage({ ...props }) {
     }
   };
 
-  const onPlayUserTrack = () => {};
+  const onOpenDeleteDialog = () => {
+    setDeleteTrackDialogOpen(true);
+  };
 
-  console.log(userTracks);
-
+  const onDeleteTrack = async () => {
+    await deleteTrackFromStorage(deleteTrack.title, deleteTrack.index);
+    toast({
+      title: "✅ Трек успешно удален!",
+      description: "Трек был успешно удален из музыки",
+      variant: "default",
+    });
+    setDeleteTrackDialogOpen(false);
+    setDeleteTrack({ index: 0, title: "" });
+    fetchUserTracks();
+  };
   return (
     <div className="min-w-[700px] min-h-screen mx-3 max-w-xl">
       <div className="flex flex-col items-center justify-center gap-3 py-5">
@@ -215,7 +285,7 @@ export default function MusicPage({ ...props }) {
         <Tabs defaultValue="my-music">
           <TabsList className="flex px-1 space-x-1">
             <TabsTrigger value="my-music">Моя музыка</TabsTrigger>
-            <TabsTrigger value="search">Поиск</TabsTrigger>
+            <TabsTrigger value="search">Подборка</TabsTrigger>
           </TabsList>
           <TabsContent
             value="my-music"
@@ -233,28 +303,51 @@ export default function MusicPage({ ...props }) {
             </div>
             <div className="flex flex-col gap-5">
               <Label className="text-lg">Мои треки</Label>
-              <div className="flex">
-                {userTracks &&
-                  userTracks.map((track, index) => (
-                    <Card
-                      key={nanoid()}
-                      className="flex flex-col items-center justify-center w-full text-center p-3"
-                      onClick={() => {
-                        setCurrentUserTrack(track);
-                        onPlayUserTrack();
-                      }}
-                    >
-                      <CardContent className="flex items-center w-full justify-between p-0">
-                        <img
-                          src={`${track.url || "/default_music.png"}`}
-                          alt=""
-                          className="w-10 h-10 object-fill rounded-xl"
+              <div className="flex flex-col gap-10">
+                {isLoaded ? (
+                  userTracks.length > 0 ? (
+                    userTracks &&
+                    userTracks.map((track, index) => (
+                      <Card
+                        key={nanoid()}
+                        className="flex flex-col items-center justify-center gap-10 w-full text-center p-3 relative"
+                        onClick={() => {
+                          setCurrentUserTrack(track);
+                        }}
+                      >
+                        <CardContent className="flex items-center w-full justify-between p-0">
+                          <img
+                            src={`${track.url || "/default_music.png"}`}
+                            alt=""
+                            className="w-10 h-10 object-fill rounded-xl"
+                          />
+                          <Label>{track.title}</Label>
+                          <audio src={track.fileUrl} ref={audioRef} controls />
+                        </CardContent>
+                        <AiFillCloseCircle
+                          className="h-6 w-6 absolute top-[-10px] right-[-10px] object-contain"
+                          onClick={() => {
+                            onOpenDeleteDialog();
+                            setDeleteTrack({
+                              ...deleteTrack,
+                              index: index,
+                              title: track.title,
+                            });
+                          }}
                         />
-                        <Label>{track.title}</Label>
-                        <audio src={track.fileUrl} ref={audioRef} controls />
-                      </CardContent>
-                    </Card>
-                  ))}
+                      </Card>
+                    ))
+                  ) : (
+                    <div className="flex flex-col items-center justify-center col-span-3 mx-auto h-full gap-3">
+                      <Emoji className="text-5xl">🥺</Emoji>
+                      <Label className="text-lg">У вас нет треков</Label>
+                    </div>
+                  )
+                ) : (
+                  <div className="w-full mx-auto">
+                    <Loader />
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
@@ -262,7 +355,6 @@ export default function MusicPage({ ...props }) {
             value="search"
             className="h-full flex flex-col flex-1 gap-5 mx-3 mt-5"
           >
-            <Input placeholder="🔎 Найти музыку..." className="w-full" />
             <Label>Плейлисты</Label>
             <Carousel className="w-full">
               <CarouselContent>
@@ -367,7 +459,7 @@ export default function MusicPage({ ...props }) {
                       <CardContent
                         key={nanoid()}
                         className="flex gap-x-2 items-center text-center hover:bg-slate-800 hover:rounded-xl p-2"
-                        onClick={() => onTrackPlay(track.track)}
+                        onClick={() => onTrackPlay(track)}
                       >
                         <div className="flex basis-1/6">
                           <img
@@ -486,21 +578,6 @@ export default function MusicPage({ ...props }) {
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Button
-                        variant="secondary"
-                        className="flex items-center justify-center gap-2"
-                      >
-                        <IoAdd className="w-4 h-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <Label>Добавить трек</Label>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
               </div>
               <div
                 style={{
@@ -548,6 +625,32 @@ export default function MusicPage({ ...props }) {
               />
             </div>
             <Button onClick={onAddTrack}>Добавить</Button>
+          </DialogContent>
+        </Dialog>
+        <Dialog
+          open={deleteTrackDialogOpen}
+          onOpenChange={setDeleteTrackDialogOpen}
+        >
+          <DialogContent>
+            <DialogHeader>Вы точно хотите удалить этот трек?</DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setDeleteTrackDialogOpen(false);
+                  setDeleteTrack({ title: "", index: 0 });
+                  toast({
+                    title: "✅ Удаление отменено",
+                    description: "Трек всё там же",
+                  });
+                }}
+              >
+                Отмена
+              </Button>
+              <Button variant="destructive" onClick={onDeleteTrack}>
+                Удалить
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>

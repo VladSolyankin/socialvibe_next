@@ -4,7 +4,11 @@ export type IUser = {
   email: string;
   avatar_url: string;
   is_online: boolean;
-  info: IUserInfo;
+  birth_date: string;
+  city: string;
+  phone: string;
+  status: string;
+  currentStatus: string;
   friends: Array<string>;
   photos: {
     albums: Array<IUserAlbum>;
@@ -41,13 +45,6 @@ export type IUserImage = {
   title: string;
 };
 
-type IUserInfo = {
-  birth_date: string;
-  city: string;
-  phone: string;
-  status: string;
-};
-
 export type IUserPost = {
   comments: Array<{ content: string; user_id: string }>;
   images: Array<string>;
@@ -73,7 +70,7 @@ export type IProfileInfo = {
   birth_date: string;
   city: string;
   phone: string;
-  status: string;
+  currentStatus: string;
 };
 
 export type IUserStatus = {
@@ -84,4 +81,14 @@ const UserStatuses = {
   online: "В сети",
   offline: "Не в сети",
   busy: "Не беспокоить",
+};
+
+export type IUserPersonalInfo = {
+  firstName: string;
+  lastName: string;
+  city: string;
+  phone: string;
+  email: string;
+  birthDate: string;
+  avatar_url: string;
 };

@@ -17,18 +17,26 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/components/ui/use-toast";
+import { INITIAL_USER } from "@/constants";
 import {
   addPostComment,
   changePostLikeCount,
   changeUserOnline,
   createUserPost,
-  getAllUsers,
+  deleteUserPost,
   getAllUsersWithPosts,
   getUser,
   getUserPosts,
@@ -37,31 +45,36 @@ import { IUser, IUserPost } from "@/types";
 import { PaperPlaneIcon } from "@radix-ui/react-icons";
 import { nanoid } from "nanoid";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Emoji from "react-emoji-render";
 import { AiFillCloseCircle } from "react-icons/ai";
 import { FaRegComment, FaRegHeart } from "react-icons/fa6";
 import { FcAddImage, FcLike } from "react-icons/fc";
-import { onSnapshot } from "@firebase/firestore";
-import { collection, query } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
-import { INITIAL_USER } from "@/constants";
+import { MdDeleteForever } from "react-icons/md";
 
 export default function NewsPage() {
   const storageUserId =
     typeof window !== "undefined" ? localStorage.getItem("userAuth") : "";
   const [userPosts, setUserPosts] = useState(Array);
-  const [userPostInfo, setUserPostInfo] = useState({});
-  const [profiles, setProfiles] = useState([]);
   const [isPostLiked, setIsPostLiked] = useState(false);
   const [currentUser, setCurrentUser] = useState<IUser>(INITIAL_USER);
   const [newPostContent, setNewPostContent] = useState("");
   const [newPostImages, setNewPostImages] = useState(Array<string>);
   const [currentPostComment, setCurrentPostComment] = useState("");
-  const [currentPostIndex, setCurrentPostIndex] = useState();
   const [isLoaded, setIsLoaded] = useState(false);
   const [usersWithPosts, setUsersWithPosts] = useState([]);
+  const [deletePostDialog, setDeletePostDialog] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      fetchUser();
+      getPostsFromFirestore();
+      fetchAllUsersWithPosts();
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -143,21 +156,13 @@ export default function NewsPage() {
   };
 
   const onLikePost = async (likedPost) => {
-    await changePostLikeCount(likedPost.id, !isPostLiked);
-    const updatedPosts = userPosts.map((post) => {
-      if (post.id === likedPost.id) {
-        return {
-          ...post,
-          likes: isPostLiked ? post.likes - 1 : post.likes + 1,
-        };
-      }
-      return post;
-    });
-    setUserPosts(updatedPosts);
-    setIsPostLiked(!isPostLiked);
+    const isLiked = likedPost.users_liked.includes(currentUser.id);
+    await changePostLikeCount(likedPost, !isLiked);
+    getPostsFromFirestore();
+    fetchAllUsersWithPosts();
   };
 
-  const onCommentPost = async (post) => {
+  const onCommentUserPost = async (userPost) => {
     const newPostComment = {
       userId: currentUser.id,
       userPreview: currentUser.avatar_url || "/default_profile.png",
@@ -165,9 +170,10 @@ export default function NewsPage() {
       content: currentPostComment,
     };
 
-    await addPostComment(post.id, newPostComment);
+    await addPostComment(userPost, newPostComment);
     const updatedPosts = userPosts.map((post) => {
-      if (post.id === post.id) {
+      if (userPost.id === post.id) {
+        console.log("here");
         return {
           ...post,
           comments: [...post.comments, newPostComment],
@@ -176,6 +182,7 @@ export default function NewsPage() {
       return post;
     });
     setUserPosts(updatedPosts);
+    fetchAllUsersWithPosts();
   };
 
   return (
@@ -229,17 +236,21 @@ export default function NewsPage() {
                     Создать пост
                   </Button>
 
-                  <div {...getRootProps()}>
-                    <input type="file" {...getInputProps()} />
-                    <FcAddImage className="h-6 w-6 cursor-pointer" />
-                  </div>
+                  {newPostImages.length < 5 ? (
+                    <div {...getRootProps()}>
+                      <input type="file" {...getInputProps()} />
+                      <FcAddImage className="h-6 w-6 cursor-pointer" />
+                    </div>
+                  ) : (
+                    <FcAddImage className="h-6 w-6 bg-red-600 rounded-sm" />
+                  )}
                 </div>
               </div>
               <div className="flex flex-col gap-10 items-center justify-center mt-5">
                 {userPosts.length > 0 ? (
                   userPosts
                     .sort((a, b) => b.date - a.date)
-                    .map((post: IUserPost, index) => {
+                    .map((post: IUserPost, index: number) => {
                       return (
                         <>
                           <Card className="flex flex-col gap-3 border-2 w-[35vw] h-full pt-4 px-8">
@@ -256,6 +267,7 @@ export default function NewsPage() {
                                 <span>{currentUser.full_name}</span>
                                 <span className="ml-auto">
                                   {post &&
+                                    post.date &&
                                     post.date
                                       .toDate()
                                       .toLocaleString()
@@ -286,14 +298,16 @@ export default function NewsPage() {
                                   </>
                                 )}
                               </Carousel>
-                              <div className="flex items-center">
+                              <div className="flex items-center relative">
                                 <Button
                                   className="text-sm"
                                   variant={"ghost"}
                                   onClick={() => onLikePost(post)}
                                 >
                                   <div className="flex items-center gap-3">
-                                    {isPostLiked ? (
+                                    {post.users_liked.includes(
+                                      currentUser.id
+                                    ) ? (
                                       <FcLike className="w-6 h-6" />
                                     ) : (
                                       <FaRegHeart className="w-6 h-6" />
@@ -311,6 +325,44 @@ export default function NewsPage() {
                                     </span>
                                   </div>
                                 </Button>
+                                <Dialog
+                                  open={deletePostDialog}
+                                  onOpenChange={setDeletePostDialog}
+                                >
+                                  <DialogTrigger>
+                                    <Button
+                                      className="absolute right-0 top-0"
+                                      variant={"destructive"}
+                                    >
+                                      <MdDeleteForever className="w-6 h-6" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      Вы точно хотите удалить этот пост?
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                      <Button
+                                        onClick={() =>
+                                          setDeletePostDialog(false)
+                                        }
+                                      >
+                                        Нет
+                                      </Button>
+                                      <Button
+                                        variant={"destructive"}
+                                        onClick={() => {
+                                          setDeletePostDialog(false);
+                                          deleteUserPost(post);
+                                          getPostsFromFirestore();
+                                          fetchAllUsersWithPosts();
+                                        }}
+                                      >
+                                        Да
+                                      </Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
                                 <div className="flex flex-col"></div>
                               </div>
                             </div>
@@ -334,7 +386,7 @@ export default function NewsPage() {
                                                 comment.userPreview ||
                                                 "default_profile.png"
                                               }`}
-                                              className="w-8 h-8"
+                                              className="w-8 h-8 rounded-full"
                                               alt=""
                                             />
                                             <div>
@@ -382,20 +434,25 @@ export default function NewsPage() {
                                     className="h-12"
                                     placeholder="Напишите новый комментарий..."
                                     name="comment"
-                                    value={currentPostComment}
-                                    onChange={(e) =>
-                                      setCurrentPostComment(e.target.value)
-                                    }
+                                    // value={currentPostComment}
+                                    onChange={(e) => {
+                                      setCurrentPostComment(e.target.value);
+                                    }}
                                     onKeyDown={(e) => {
                                       if (e.key === "Enter") {
                                         e.preventDefault();
-                                        onCommentPost(post);
-                                        setCurrentPostComment("");
+                                        onCommentUserPost(post);
+                                        e.target.value = "";
                                       }
                                     }}
                                   />
                                 </form>
-                                <Button onSubmit={() => {}} size="icon">
+                                <Button
+                                  onClick={() => {
+                                    onCommentUserPost(post);
+                                  }}
+                                  size="icon"
+                                >
                                   <PaperPlaneIcon />
                                 </Button>
                               </div>
@@ -424,7 +481,7 @@ export default function NewsPage() {
                     return (
                       <>
                         <div className="flex flex-col gap-10">
-                          {user &&
+                          {user.posts &&
                             user.posts.map((post) => {
                               return (
                                 <>
@@ -442,6 +499,7 @@ export default function NewsPage() {
                                         <span>{user.full_name}</span>
                                         <span className="ml-auto">
                                           {post &&
+                                            post.date &&
                                             post.date
                                               .toDate()
                                               .toLocaleString()
@@ -479,7 +537,9 @@ export default function NewsPage() {
                                           onClick={() => onLikePost(post)}
                                         >
                                           <div className="flex items-center gap-3">
-                                            {isPostLiked ? (
+                                            {post.users_liked.includes(
+                                              currentUser.id
+                                            ) ? (
                                               <FcLike className="w-6 h-6" />
                                             ) : (
                                               <FaRegHeart className="w-6 h-6" />
@@ -520,7 +580,7 @@ export default function NewsPage() {
                                                         comment.userPreview ||
                                                         "default_profile.png"
                                                       }`}
-                                                      className="w-8 h-8"
+                                                      className="w-8 h-8 rounded-full"
                                                       alt=""
                                                     />
                                                     <div>
@@ -569,6 +629,7 @@ export default function NewsPage() {
                                             className="h-12"
                                             placeholder="Напишите новый комментарий..."
                                             name="comment"
+                                            // value={currentPostComment}
                                             onChange={(e) => {
                                               setCurrentPostComment(
                                                 e.target.value
@@ -577,13 +638,18 @@ export default function NewsPage() {
                                             onKeyDown={(e) => {
                                               if (e.key === "Enter") {
                                                 e.preventDefault();
-                                                onCommentPost(post);
-                                                setCurrentPostComment("");
+                                                onCommentUserPost(post);
+                                                e.target.value = "";
                                               }
                                             }}
                                           />
                                         </form>
-                                        <Button size="icon">
+                                        <Button
+                                          onClick={() => {
+                                            onCommentUserPost(post);
+                                          }}
+                                          size="icon"
+                                        >
                                           <PaperPlaneIcon />
                                         </Button>
                                       </div>
@@ -597,7 +663,7 @@ export default function NewsPage() {
                     );
                   })
                 ) : (
-                  <>ww</>
+                  <>Привет</>
                 )}
               </div>
             </TabsContent>
